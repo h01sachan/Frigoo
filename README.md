@@ -1,0 +1,2 @@
+# Frigoo
+social networking app

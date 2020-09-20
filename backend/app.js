@@ -1,25 +1,20 @@
 const express=require('express');
 const app=express()
 const mongoose=require('mongoose')
-const PORT=5000
-const {MONGOURI}=require('./keys')
+const connectdb =require("./connectdb/db")
 
+const PORT=6000
 
+//connected to mongoodb
+connectdb()
 
-mongoose.connect(MONGOURI,{
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}) 
-mongoose.connection.on('connected',()=>{
-    console.log("connected to mongo yeahh")
-})
-mongoose.connection.on('error',(err)=>{
-    console.log("error while connecting",err)
-})
-
+//userSchema model
 require('./models/user')
 
+
 app.use(express.json())
+
+//route file for authentication
 app.use(require('./routes/auth'))
 
 app.listen(PORT,()=>{

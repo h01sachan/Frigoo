@@ -7,6 +7,8 @@ const jwt=require('jsonwebtoken')
 const {JWT_SECRET}=require('../keys')
 const requirelogin = require('../controllers/requirelogin')
 const {body , validationResult} = require("express-validator")
+const nodemailer = require("nodemailer")
+const nodemailersendgrid = require("nodemailer-sendgrid-transport")
 /*router.get('/',(req,res)=>{
     res.send("hello")
 })*/
@@ -14,7 +16,11 @@ const {body , validationResult} = require("express-validator")
 router.get('/protected',requirelogin,(req,res)=>{
     res.send("hello user")
 })
-
+const transporter = nodemailer.createTransport(nodemailersendgrid({
+    auth:{
+        api_key: "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"
+    }
+}))
 //signup API
 router.post('/signup',[ body("password").isLength({min:5}) ] , 
 (req,res)=>{
@@ -56,6 +62,14 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
 
             //if no error then saved successfully
             user.save().then(user=>{
+                //sending email if signup successfully
+                    transporter.sendMail({
+                    to:user.email,
+                    from:"naina1910078@akgec.ac.in",
+                    subject:"signup successfully",
+                    html:"<h1>welcome to Frigoo lets enjoy the ultimate features of Frigoo</h1>"
+                })
+
                 res.json({message:"saved successfully"})
             })
             .catch(err=>{
@@ -87,6 +101,8 @@ router.post('/login',(req,res)=>{
             {
                 //return res.json({message:"successfully logged in"})
                 const token=jwt.sign({_id:savedUser._id},JWT_SECRET)
+
+
                 //console.log(token)
                 return res.json({token:token})
             }
@@ -97,6 +113,7 @@ router.post('/login',(req,res)=>{
         .catch(err=>{
             console.log(err)
         })
+
     })
     .catch(err=>{
         console.log(err)

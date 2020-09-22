@@ -3,7 +3,7 @@ const app=express()
 const mongoose=require('mongoose')
 const connectdb =require("./connectdb/db")
 
-const PORT=6000
+const PORT=5000
 
 //connected to mongoodb
 connectdb()

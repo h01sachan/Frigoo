@@ -9,9 +9,9 @@ const requirelogin = require('../controllers/requirelogin')
 const {body , validationResult} = require("express-validator")
 const nodemailer = require("nodemailer")
 const nodemailersendgrid = require("nodemailer-sendgrid-transport")
-/*router.get('/',(req,res)=>{
+router.get('/',(req,res)=>{
     res.send("hello")
-})*/
+})
 
 router.get('/protected',requirelogin,(req,res)=>{
     res.send("hello user")
@@ -95,6 +95,9 @@ router.post('/login',(req,res)=>{
         if(!savedUser){
             return res.status(202).json({error:"invalid eamil or password"})
         }
+        if (!savedUser.confirmed) {
+            throw new Error('Please confirm your email to login');
+          }
         bcrypt.compare(password,savedUser.password)
         .then(doMatch=>{
             if(doMatch)

@@ -2,7 +2,7 @@ const jwt=require('jsonwebtoken')
 const{JWT_SECRET}=require('../keys')
 const mongoose=require('mongoose')
 const User=mongoose.model("User")
-
+const Feed=mongoose.model("Feed")
 
 /*exports.signup=(req,res,next)=>{
     const {email,name,password}=req.body
@@ -25,7 +25,9 @@ module.exports=(req,res,next)=>{
         
         User.findById(_id).then(userdata=>{
             req.user=userdata
+            next()
         })
-        next()
+        
     })
+    
 }

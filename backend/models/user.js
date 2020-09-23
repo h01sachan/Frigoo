@@ -20,7 +20,8 @@ const userschema=new mongoose.Schema({
     confirmPassword:{
         type:String,
         required:true
-    }
+    },
+    
 
 })
 

@@ -5,17 +5,19 @@ const User=mongoose.model("User")
 const bcrypt=require('bcryptjs')
 const jwt=require('jsonwebtoken')
 const {JWT_SECRET}=require('../keys')
-const requirelogin = require('../controllers/requirelogin')
+const requirelogin = require('../Controllers/jwt-login')
 const {body , validationResult} = require("express-validator")
 const nodemailer = require("nodemailer")
 const nodemailersendgrid = require("nodemailer-sendgrid-transport")
+const passport=require('passport')
+
+
+
 router.get('/',(req,res)=>{
     res.send("hello")
 })
 
-router.get('/protected',requirelogin,(req,res)=>{
-    res.send("hello user")
-})
+
 const transporter = nodemailer.createTransport(nodemailersendgrid({
     auth:{
         api_key: "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"
@@ -95,9 +97,6 @@ router.post('/login',(req,res)=>{
         if(!savedUser){
             return res.status(202).json({error:"invalid eamil or password"})
         }
-        if (!savedUser.confirmed) {
-            throw new Error('Please confirm your email to login');
-          }
         bcrypt.compare(password,savedUser.password)
         .then(doMatch=>{
             if(doMatch)

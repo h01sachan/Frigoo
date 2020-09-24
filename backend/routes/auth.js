@@ -46,7 +46,7 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
     }
     
     //email should be unique
-    User.findOne({email:email}).then((savedUser)=>{
+    User.findOne({ email:email }).then((savedUser)=>{
         if (savedUser){
             return res.status(202)
             .json({error:"user already exist"})

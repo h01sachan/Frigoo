@@ -8,6 +8,7 @@ const Feed=mongoose.model("Feed")
     const {email,name,password}=req.body
 }*/
 
+
 module.exports=(req,res,next)=>{
     const {authorization}=req.headers
     if(!authorization){

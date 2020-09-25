@@ -125,52 +125,6 @@ router.post('/verify',(req,res)=>{
       
       
 })
-   /*User.findOne({ emailToken:req.query.token}).then((savedUser)=>{
-    if (savedUser){
-
-        const user=new User({
-            email,
-                password,
-                name,
-                confirmPassword,
-            emailToken: null,
-            isverified:true
-        })
-        user.save()
-        return res.redirect('/login')
-        //return res.status(202)
-       //.json({error:"user already exist"})
-    }
-    return res.json({error:"token is invalid"})*/
-   /* try{
-        const user =await User.findOne({emailToken:req.query.token})
-        if((!user)){
-            return res.json({error:"token is invalid"})
-        }
-        user.emailToken=null
-        user.isverified=true
-        await user.save()
-        return res.redirect('/')
-    }
-    catch(err){
-        console.log(err)
-        res.redirect('/')
-    }
-    */
-        /*if(!match)
-        {
-            res.json(({message:"token not verified"}))
-            return res.redirect('/signup')
-        }
-        const user=new User({
-            emailToken: null,
-            isverified:true
-        })
-        user.save()
-        res.json(({message:"verified"}))
-        return res.redirect('/')
-    })*/
-    
 
 
 

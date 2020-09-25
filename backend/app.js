@@ -5,7 +5,7 @@ const connectdb =require("./connectdb/db")
 const passport=require('passport')
 const crypto=require('crypto')
 
-const PORT=5000
+const PORT=6000
 
 //connected to mongoodb
 connectdb()

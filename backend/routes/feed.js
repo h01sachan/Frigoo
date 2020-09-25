@@ -27,4 +27,25 @@ router.post('/createfeed',requirelogin,(req,res)=>{
     })
 })
 
+router.get("/allfeed",(req,res)=>{
+    Feed.find()
+    .populate("postedBy" , "_id name email")
+    .then(feeds=>{
+       res.json({feeds})
+    })
+    .catch(err=>{
+    console.log(err)
+    })
+})
+
+router.get("/myfeed",requirelogin, (req,res)=>{
+    Feed.find({postedBy:req.user._id})
+    .populate("postedBy" , "_id name email")
+    .then(myfeed=>{
+        res.json({myfeed})
+    })
+    .catch(err=>{
+        console.log(err)
+    })
+})
 module.exports=router

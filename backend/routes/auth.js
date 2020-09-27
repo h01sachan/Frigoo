@@ -88,11 +88,11 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
             )
             const otpdata = new OtpUser({
                 token: token,
-                email,email,
+                email:email,
                 otp: otp
             })
             console.log(otp)
-            otpdata.save();
+            otpdata.save()
             res.status(201).json({ message: "otp is generated" , token:token});
             //if no error then saved successfully
 
@@ -134,7 +134,7 @@ router.post('/otpverify',(req,res)=>{
       if (otpuser.otp === otp) {
 
         User.findOne({ email: otpuser.email }).then(user => {
-          user.isVerified = "true"
+          user.isVerified="true"
           console.log(user)
           user.save()
         })
@@ -157,7 +157,39 @@ router.post('/otpverify',(req,res)=>{
     })
 })
 
+router.post('/resend',(req,res)=>{
+    const{email}=req.body
+    let otp = otpGenerator.generate(6, {
+        alphabets: false,
+        specialChars: false,
+        upperCase: false,
+      });
+    const token = jwt.sign(
+    {
+        email: email,
+    },
+    "otptoken",
+        { expiresIn: 180 } //in three minute
+    )
+    const otpdata = new OtpUser({
+        token: token,
+        otp: otp,
+        email: email
+    })
+    console.log(otp)
+    otpdata.save()
+    res.status(201).json({ message: "otp is generated" , token:token})
 
+    return transporter.sendMail({
+        
+        from: "sachan.himanshu2001@gmail.com",
+        to: email,
+        subject: "otp verification",
+        html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
+
+      });
+
+})
 //login API
 router.post('/login',(req,res)=>{
     const {email,password}=req.body

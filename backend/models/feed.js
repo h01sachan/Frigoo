@@ -10,9 +10,9 @@ const feedSchema=new mongoose.Schema({
         type:String,
         required:true
     },
-    photo:{
+    photourl:{
         type:String,
-        default:"will post a photo"
+        required:true  
     },
     postedBy:{
         type:ObjectId,

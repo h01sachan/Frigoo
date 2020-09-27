@@ -55,7 +55,27 @@ router.post('/createfeed',requirelogin,(req,res)=>{
         console.log(error)
     })
 })
+router.get("/myfeed",requirelogin, (req,res)=>{
+    Feed.find({postedBy:req.user._id})
+    .populate("postedBy" , "_id name email")
+    .then(myfeed=>{
+        res.json({myfeed})
+    })
+    .catch(err=>{
+        console.log(err)
+    })
+})
 
+router.get("/allfeed",requirelogin, (req,res)=>{
+    Feed.find()
+    .populate("postedBy" , "_id name email")
+    .then(feeds=>{
+        res.json({feeds})
+    })
+    .catch(err=>{
+        console.log(err)
+    })
+})
 
 router.get("/myfeed",requirelogin, (req,res)=>{
     Feed.find({postedBy:req.user._id})

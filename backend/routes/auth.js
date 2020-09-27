@@ -2,6 +2,7 @@ const express=require('express')
 const router=express.Router()
 const mongoose = require('mongoose')
 const User=mongoose.model("User")
+const OtpUser=mongoose.model("OtpUser")
 const bcrypt=require('bcryptjs')
 const jwt=require('jsonwebtoken')
 const {JWT_SECRET}=require('../keys')
@@ -12,24 +13,17 @@ const nodemailersendgrid = require("nodemailer-sendgrid-transport")
 const passport=require('passport')
 const crypto=require('crypto')
 const { route } = require('./feed')
+const otpGenerator = require("otp-generator");
 
 
 
 router.get('/',(req,res)=>{
     res.send("hello")
 })
-        //at 204 invalid eamil or password
-        //at 203 please add email or password
-        //at 423 email doesnt exist
-        // at 424 now verify your email
-        //at 205 user already exists
-        //at 422 confirm your password
-        //at 401 please add all the fields
-        //at 400 error is password must contain 5 characters
 
 const transporter = nodemailer.createTransport(nodemailersendgrid({
     auth:{
-        api_key: "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"
+        api_key: "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"
        // api_key: "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"
        //api_key: "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"
     }
@@ -37,12 +31,11 @@ const transporter = nodemailer.createTransport(nodemailersendgrid({
 //signup API
 router.post('/signup',[ body("password").isLength({min:5}) ] , 
 (req,res)=>{
-    console.log(req.body.name)
     const error =validationResult(req);
     if(!error.isEmpty()) {
         
-        //at 400 error is password must contain 5 characters
-        return res.status(400).json({error: "password must contain atleast 5 characters"});
+        //at 403 error is password must contain 5 characters
+        return res.status(403).json({error: "password must contain atleast 5 characters"});
     }
 
     const{name,email,password,confirmPassword}=req.body
@@ -57,15 +50,15 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
     
     //password should be confirmed
     if(password != confirmPassword) {
-        //at 422 confirm your password
-        return res.status(422).json({error:"confirm your password"})
+        //at 403 confirm your password
+        return res.status(403).json({error:"confirm your password"})
     }
     
     //email should be unique
     User.findOne({ email:email }).then((savedUser)=>{
         if (savedUser){
             //at 205 user already exists
-            return res.status(205)
+            return res.status(401)
             .json({error:"user already exist"})
         }
 
@@ -76,29 +69,42 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
                 email,
                 password:hashedpassword,
                 name,
-                confirmPassword,
-                emailToken: crypto.randomBytes(64).toString('hex'),
-                isverified:"false"
+                confirmPassword:hashedpassword,
+                //emailToken: crypto.randomBytes(64).toString('hex'),
+                isVerified:"false"
             })
-
+            user.save()
+            //generated otp using otp generatror
+            let otp = otpGenerator.generate(6, {
+                alphabets: false,
+                specialChars: false,
+                upperCase: false,
+              });
+            const token = jwt.sign(
+            {
+                email: email,
+            },
+            "otptoken",
+                { expiresIn: 180 } //in one minute
+            )
+            const otpdata = new OtpUser({
+                token: token,
+                otp: otp,
+                email: email,
+            })
+            console.log(otp)
+            otpdata.save();
+            res.status(201).json({ message: "otp is generated" , token:token});
             //if no error then saved successfully
-            user.save().then(user=>{
-                //sending email if signup successfully
-                    transporter.sendMail({
-                    to:user.email,
-                    from:"sachan.himanshu2001@gmail.com",
-                    subject:"signup successfully",
-                    html:`<h1>welcome to Frigoo lets enjoy the ultimate features of Frigoo</h1>
-                    <a href ="http://localhost:5000/verify?token=${user.emailToken}">verify </a>`
-                })
-                //res.redirect('/verify')
-                // at 424 now verify your email
-                return res.status(424).json({message:"saved successfully now verify your email"})
-            })
-            .catch(err=>{
-                //at 423 email doesnt exist
-                return res.status(423).json({error:"email does not exist"})
-            })
+
+            return transporter.sendMail({
+                
+                from: "sachan.himanshu2001@gmail.com",
+                to: email,
+                subject: "signup successful",
+                html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
+
+              });
         })
 
     })
@@ -107,58 +113,92 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
     })
 })
 
-router.post('/verify',(req,res)=>{
-    const email=req.body.email
-    
-    User.findOne({ email:email }).then(user => {
-        user.isVerified="true"
-        user.emailToken=null
-        user.save()
-        console.log(user)
-        //res.send("verified")
-        res.redirect('/login')
-        
+
+
+router.post('/otpverify',(req,res)=>{
+    const token = req.body.token;
+    const otp = req.body.otp;
+    const email = req.body.email;
+    //console.log(recievedOtp)
+  // searching for otp in database by token that i stored by token1
+  console.log(token)
+  OtpUser.findOne({token:token})
+    .then((data) => {
+      //console.log("found token");
+      // if not found
+      console.log(data.otp)
+      if (data==null) {
+        return res.status(403).json({error:"otp expired"})
+        // console.log(error)
+      }
+      
+      // check if entered otp is valid
+      if (data.otp === otp) {
+
+        User.findOne({ email: data.email }).then(user => {
+          user.isVerified = "true";
+          console.log(user);
+          user.save();
+        })
+
+        data.remove();
+
+        return res.status(200).json({
+            message: "otp entered is correct, user added",
+            })
+        } else {
+
+            return res.status(403).json({error:"otp entered is invalid "})
+        }
+        //console.log(error)
       })
-      .catch(err=>{
+    .catch(err=>{
         console.log(err)
     })
-      
-      
 })
-
-
 
 
 //login API
 router.post('/login',(req,res)=>{
     const {email,password}=req.body
+    // console.log(req.body.name)
+    // console.log(req.body.email)
+    // console.log(req.body.confirmPassword)
+    // console.log(req.body.password)
     if(!email || !password)
-    {
-        
+    {   
         //at 203 please add email or password
         return res.status(202).json({error:"please add email or password"})
     }
     User.findOne({email:email})
     .then(savedUser=>{
-        if(!savedUser){
+        console.log(savedUser)
+        if(savedUser==null){
             //at 204 invalid eamil or password
-            return res.status(204).json({error:"invalid eamil or password"})
+            return res.status(202).json({error:"invalid eamil or password"})
         }
-        //console.log(savedUser.isVerified)
-        console.log(savedUser.isVerified)
-        if(savedUser.isVerified==="false")
-        {
-            //return res.send("plase verify")
-            transporter.sendMail({
-                to:savedUser.email,
-                from:"sachan.himanshu2001@gmail.com",
-                subject:"signup successfully",
-                html:`<h1>welcome to Frigoo lets enjoy the ultimate features of Frigoo</h1>
-                <a href ="http://localhost:5000/verify?token=${savedUser.emailToken}">verify </a>`})
-            return res.send("please verify your email")
-        }
+    
+        // if(savedUser.isVerified==="false")
+        // {
+        //     //return res.send("plase verify")
+        //     transporter.sendMail({
+        //         to:savedUser.email,
+        //         from:"sachan.himanshu2001@gmail.com",
+        //         subject:"signup successfully",
+        //         html:`<h1>welcome to Frigoo lets enjoy the ultimate features of Frigoo</h1>
+        //         <a href ="http://localhost:5000/verify?token=${savedUser.emailToken}">verify </a>`})
+        //     return res.send("please verify your email")
+        // }
+        // if(savedUser.isVerified==="false")
+        // {
+
+        // }
+        
+
+
         bcrypt.compare(password,savedUser.password)
         .then(doMatch=>{
+            console.log(doMatch)
             if(doMatch)
             {
                 //return res.json({message:"successfully logged in"})
@@ -169,7 +209,7 @@ router.post('/login',(req,res)=>{
                 return res.json({token:token})
             }
             else{
-                return res.status(204).json({message:"invalid eamil or password"})
+                return res.status(202).json({error:"wrong password"})
             }
         })
         .catch(err=>{

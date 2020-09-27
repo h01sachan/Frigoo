@@ -12,6 +12,8 @@ connectdb()
 
 //userSchema model
 require('./models/user')
+//otpSchema model
+require('./models/otp')
 //feedSchema model
 require('./models/feed')
 

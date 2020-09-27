@@ -194,6 +194,39 @@ router.post('/login',(req,res)=>{
 
         // }
         
+        if(savedUser.isVerified==="false")
+        {
+            let otp = otpGenerator.generate(6, {
+                alphabets: false,
+                specialChars: false,
+                upperCase: false,
+              });
+            const token = jwt.sign(
+            {
+                email: email,
+            },
+            "otptoken",
+                { expiresIn: 180 } //in one minute
+            )
+            const otpdata = new OtpUser({
+                token: token,
+                otp: otp,
+                email: email,
+            })
+            console.log(otp)
+            otpdata.save();
+            res.status(201).json({ message: "otp is generated" , token:token});
+
+            return transporter.sendMail({
+                
+                from: "sachan.himanshu2001@gmail.com",
+                to: email,
+                subject: "signup successful",
+                html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
+
+              });
+
+        }
 
 
         bcrypt.compare(password,savedUser.password)

@@ -13,7 +13,8 @@ const nodemailersendgrid = require("nodemailer-sendgrid-transport")
 const passport=require('passport')
 const crypto=require('crypto')
 const { route } = require('./feed')
-const otpGenerator = require("otp-generator");
+const otpGenerator = require("otp-generator")
+const config=require("../config")
 
 
 
@@ -23,9 +24,7 @@ router.get('/',(req,res)=>{
 
 const transporter = nodemailer.createTransport(nodemailersendgrid({
     auth:{
-        api_key: "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"
-       // api_key: "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"
-       //api_key: "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"
+        api_key: config.api_key
     }
 }))
 //signup API
@@ -98,7 +97,7 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
 
             return transporter.sendMail({
                 
-                from: "sachan.himanshu2001@gmail.com",
+                from: "himanshu1912006@akgec.ac.in",
                 to: email,
                 subject: "signup successful",
                 html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
@@ -182,7 +181,7 @@ router.post('/resend',(req,res)=>{
 
     return transporter.sendMail({
         
-        from: "sachan.himanshu2001@gmail.com",
+        from: "himanshu1912006@akgec.ac.in",
         to: email,
         subject: "otp verification",
         html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
@@ -236,7 +235,7 @@ router.post('/login',(req,res)=>{
 
             return transporter.sendMail({
                 
-                from: "sachan.himanshu2001@gmail.com",
+                from: "himanshu1912006@akgec.ac.in",
                 to: email,
                 subject: "otp verification",
                 html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`

@@ -71,7 +71,7 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
                 name,
                 confirmPassword:hashedpassword,
                 //emailToken: crypto.randomBytes(64).toString('hex'),
-                isVerified:"false"
+                isVerified:"false" //this will tell if user verfied or not
             })
             user.save()
             //generated otp using otp generatror
@@ -79,18 +79,17 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
                 alphabets: false,
                 specialChars: false,
                 upperCase: false,
-              });
+              })
             const token = jwt.sign(
             {
                 email: email,
             },
-            "otptoken",
-                { expiresIn: 180 } //in one minute
+            "otptoken",{ expiresIn: 180 } //in three minute
             )
             const otpdata = new OtpUser({
                 token: token,
-                otp: otp,
-                email: email,
+                email,email,
+                otp: otp
             })
             console.log(otp)
             otpdata.save();
@@ -116,38 +115,39 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
 
 
 router.post('/otpverify',(req,res)=>{
-    const token = req.body.token;
-    const otp = req.body.otp;
-    const email = req.body.email;
-    //console.log(recievedOtp)
+
+    const{token,otp,email}=req.body
+
   // searching for otp in database by token that i stored by token1
   console.log(token)
   OtpUser.findOne({token:token})
-    .then((data) => {
+    .then((otpuser) => {
       //console.log("found token");
       // if not found
-      console.log(data.otp)
-      if (data==null) {
+      //console.log(otpuser.otp)
+      if (otpuser==null) {
         return res.status(403).json({error:"otp expired"})
         // console.log(error)
       }
       
       // check if entered otp is valid
-      if (data.otp === otp) {
+      if (otpuser.otp === otp) {
 
-        User.findOne({ email: data.email }).then(user => {
-          user.isVerified = "true";
-          console.log(user);
-          user.save();
+        User.findOne({ email: otpuser.email }).then(user => {
+          user.isVerified = "true"
+          console.log(user)
+          user.save()
         })
 
-        data.remove();
+        //after verification remove user's otp database
+        otpuser.remove()
 
         return res.status(200).json({
             message: "otp entered is correct, user added",
             })
-        } else {
-
+        } 
+        else 
+        {
             return res.status(403).json({error:"otp entered is invalid "})
         }
         //console.log(error)
@@ -178,21 +178,6 @@ router.post('/login',(req,res)=>{
             return res.status(202).json({error:"invalid eamil or password"})
         }
     
-        // if(savedUser.isVerified==="false")
-        // {
-        //     //return res.send("plase verify")
-        //     transporter.sendMail({
-        //         to:savedUser.email,
-        //         from:"sachan.himanshu2001@gmail.com",
-        //         subject:"signup successfully",
-        //         html:`<h1>welcome to Frigoo lets enjoy the ultimate features of Frigoo</h1>
-        //         <a href ="http://localhost:5000/verify?token=${savedUser.emailToken}">verify </a>`})
-        //     return res.send("please verify your email")
-        // }
-        // if(savedUser.isVerified==="false")
-        // {
-
-        // }
         
         if(savedUser.isVerified==="false")
         {
@@ -206,22 +191,22 @@ router.post('/login',(req,res)=>{
                 email: email,
             },
             "otptoken",
-                { expiresIn: 180 } //in one minute
+                { expiresIn: 180 } //in three minute
             )
             const otpdata = new OtpUser({
                 token: token,
                 otp: otp,
-                email: email,
+                email: email
             })
             console.log(otp)
-            otpdata.save();
-            res.status(201).json({ message: "otp is generated" , token:token});
+            otpdata.save()
+            res.status(201).json({ message: "otp is generated" , token:token})
 
             return transporter.sendMail({
                 
                 from: "sachan.himanshu2001@gmail.com",
                 to: email,
-                subject: "signup successful",
+                subject: "otp verification",
                 html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
 
               });

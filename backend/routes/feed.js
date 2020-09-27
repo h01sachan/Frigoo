@@ -6,14 +6,18 @@ const requirelogin = require('../Controllers/jwt-login')
 const Feed=mongoose.model("Feed")
 
 const multer = require("multer")
+
+//function to store the images
 const storage = multer.diskStorage({
-    destination: (req,file, cb)=>{
+    destination: (req,file, cb)=>{  //choose the destination for storing images
         cb(null,"./uploads/");
     },
-    filename: (req,file,cb)=>{
+    filename: (req,file,cb)=>{      //set filename as originalfilename 
         cb(null, file.originalname)
     }
 })
+
+//function to filter the image type
 const fileFilter = (req,file,cb)=>{
     if(file.mimetype === "image/jpeg" || file.mimetype === "image/png"){
         cb(null,true);
@@ -21,7 +25,10 @@ const fileFilter = (req,file,cb)=>{
         cb(null,false)
     }
 }
+
 router.use(multer({storage:storage ,fileFilter:fileFilter}).single("photo"))
+
+//Create post API
 router.post('/createfeed',requirelogin,(req,res)=>{
 
     //res.send("hello")

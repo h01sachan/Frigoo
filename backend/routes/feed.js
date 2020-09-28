@@ -78,16 +78,6 @@ router.get("/allfeed",requirelogin, (req,res)=>{
     })
 })
 
-router.get("/myfeed",requirelogin, (req,res)=>{
-    Feed.find({postedBy:req.user._id})
-    .populate("postedBy" , "_id name email")
-    .then(myfeed=>{
-        res.json({myfeed})
-    })
-    .catch(err=>{
-        console.log(err)
-    })
-})
 
 router.put('/like/post',requirelogin,(req,res)=>{
      //req user's feedid from client side

@@ -3,6 +3,7 @@ const{JWT_SECRET}=require('../keys')
 const mongoose=require('mongoose')
 const User=mongoose.model("User")
 const Feed=mongoose.model("Feed")
+const Profile=mongoose.model("Profile")
 
 /*exports.signup=(req,res,next)=>{
     const {email,name,password}=req.body

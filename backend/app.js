@@ -16,6 +16,8 @@ require('./models/user')
 require('./models/otp')
 //feedSchema model
 require('./models/feed')
+//profileSchema model
+require('./models/profile')
 
 app.use(express.static("uploads"))
 app.use(express.json())
@@ -30,7 +32,6 @@ app.use(require('./routes/feed'))
 
 //route file for authentication
 app.use(require('./routes/user'))
-
 
 app.listen(PORT,()=>{
     console.log("server is running",PORT)

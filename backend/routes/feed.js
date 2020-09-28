@@ -67,4 +67,40 @@ router.get("/myfeed",requirelogin, (req,res)=>{
         console.log(err)
     })
 })
+
+router.put('/like-post',requirelogin,(req,res)=>{
+    Feed.findOneAndUpdate(req.body.feedId,{
+        $push:{likes:req.user._id},
+    },
+    {
+        new:true 
+    })
+    .exec((err,result)=>{
+        if(err){
+            return res.status(422).json({error:err})       
+        }
+        else{
+            res.json(result)
+        }
+    })
+})
+router.put('/unlike-post',requirelogin,(req,res)=>{
+    Feed.findOneAndUpdate(req.body.feedId,{
+        $pull:{likes:req.user._id},
+    },
+    {
+        new:true 
+    })
+    .exec((err,result)=>{
+        if(err){
+            return res.status(422).json({error:err})       
+        }
+        else{
+            res.json(result)
+        }
+    })
+})
+
+
+
 module.exports=router

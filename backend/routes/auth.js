@@ -251,7 +251,7 @@ router.post('/login',(req,res)=>{
             if(doMatch)
             {
                 //return res.json({message:"successfully logged in"})
-                const token=jwt.sign({_id:savedUser._id},JWT_SECRET)
+                const token=jwt.sign({_id:savedUser._id},JWT_SECRET,{expiresIn:'6h'})
 
 
                 //console.log(token)

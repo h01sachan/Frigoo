@@ -1,4 +1,5 @@
 const mongoose=require('mongoose')
+const {ObjectId}=mongoose.Schema.Types
 const userschema=new mongoose.Schema({
     
     name:{
@@ -21,7 +22,6 @@ const userschema=new mongoose.Schema({
         type:String,
         required:true
     },
-    emailToken:String,
     isVerified: { 
         type: String, 
         default: "false"

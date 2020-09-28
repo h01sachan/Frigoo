@@ -88,5 +88,18 @@ router.put("/Unfollow",requirelogin ,(req,res)=>{
         })
 	})
 })
-
+//search users in database
+router.post('/search/users',(req,res)=>{
+	//The RegExp object is used for matching text with a pattern.
+	let username=new RegExp("^"+req.body.query)
+	User.find({name:{$regex:username}})
+	//searched user by id and email
+	.select("_id email")
+	.then (user=>{
+		res.json({user})
+	})
+	.catch(err=>{
+		console.log(err)
+	})
+})
 module.exports = router

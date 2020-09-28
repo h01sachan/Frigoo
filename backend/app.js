@@ -28,6 +28,10 @@ app.use(require('./routes/auth'))
 //route file for authentication
 app.use(require('./routes/feed'))
 
+//route file for authentication
+app.use(require('./routes/user'))
+
+
 app.listen(PORT,()=>{
     console.log("server is running",PORT)
 })

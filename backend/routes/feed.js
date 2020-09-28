@@ -29,6 +29,7 @@ const fileFilter = (req,file,cb)=>{
 router.use(multer({storage:storage ,fileFilter:fileFilter}).single("photo"))
 
 //Create post API
+//using requirelogin to make this route protected
 router.post('/createfeed',requirelogin,(req,res)=>{
 
     //res.send("hello")
@@ -68,11 +69,14 @@ router.get("/myfeed",requirelogin, (req,res)=>{
     })
 })
 
-router.put('/like-post',requirelogin,(req,res)=>{
+router.put('/like/post',requirelogin,(req,res)=>{
+     //req user's feedid from client side
     Feed.findOneAndUpdate(req.body.feedId,{
-        $push:{likes:req.user._id},
+    //pushing user id in array who liked it
+        $push:{likes:req.user._id}, 
     },
     {
+        //to get updated user profile after like 
         new:true 
     })
     .exec((err,result)=>{
@@ -84,13 +88,41 @@ router.put('/like-post',requirelogin,(req,res)=>{
         }
     })
 })
-router.put('/unlike-post',requirelogin,(req,res)=>{
+router.put('/unlike/post',requirelogin,(req,res)=>{
+    //req user's feedid from client side
     Feed.findOneAndUpdate(req.body.feedId,{
+        //pulling user id out off array who unliked it
         $pull:{likes:req.user._id},
     },
     {
+        //to get updated user profile after unlike 
         new:true 
     })
+    .exec((err,result)=>{
+        if(err){
+            return res.status(422).json({error:err})       
+        }
+        else{
+            res.json(result)
+        }
+    })
+})
+router.put('/comment/on/post',requirelogin,(req,res)=>{
+    const comment={
+        text:req.body.text, //from client side 
+        postedBy:req.user._id //which user has posted a comment
+    }
+    Feed.findOneAndUpdate(req.body.feedId,{
+        //pushing a comment in array with user id 
+        $push:{comment:comment}
+    },
+    {
+        //to get new and updated instance 
+        new:true 
+    })
+    //populate() function in mongoose is used for populating the data inside the reference.
+    //In our case feedSchema is having postedBy field which will reference to the _id field which is basically the ObjectId of the mongodb document.
+    .populate("comment.postedby","_id username")
     .exec((err,result)=>{
         if(err){
             return res.status(422).json({error:err})       

@@ -15,6 +15,8 @@ const crypto=require('crypto')
 const { route } = require('./feed')
 const otpGenerator = require("otp-generator")
 const config=require("../config")
+const { match } = require('assert')
+var emailRegex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
 
 
 
@@ -30,7 +32,7 @@ const transporter = nodemailer.createTransport(nodemailersendgrid({
 //signup API
 router.post('/signup',[ body("password").isLength({min:5}) ] , 
 (req,res)=>{
-    const error =validationResult(req);
+    const error =validationResult(req)
     if(!error.isEmpty()) {
         
         //at 403 error is password must contain 5 characters
@@ -38,6 +40,11 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
     }
 
     const{name,email,password,confirmPassword}=req.body
+    var valid = emailRegex.test(email)
+    if(!valid)
+    {
+        return res.status(403).json({error: "please enter valid email"});
+    }
 
     //all details should be mentioned
     if(!email || !password || !name || !confirmPassword ) {
@@ -46,7 +53,6 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
         return res.status(401)
         .json({error:"please add all the fields"})
     }
-    
     //password should be confirmed
     if(password != confirmPassword) {
         //at 403 confirm your password
@@ -97,7 +103,7 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
 
             return transporter.sendMail({
                 
-                from: "himanshu1912006@akgec.ac.in",
+                from: "sachan.himanshu2001@gmail.com",
                 to: email,
                 subject: "signup successful",
                 html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
@@ -107,7 +113,8 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
 
     })
     .catch(err=>{
-        res.json(err)
+        console.log(err)
+        res.json({error:"email does not exist"})
     })
 })
 
@@ -158,6 +165,12 @@ router.post('/otpverify',(req,res)=>{
 
 router.post('/resend',(req,res)=>{
     const{email}=req.body
+    OtpUser.findOne({email:email})
+    .then((otpuser)=>{
+        otpuser.token="false"
+        otpuser.save()
+
+    })
     let otp = otpGenerator.generate(6, {
         alphabets: false,
         specialChars: false,
@@ -181,7 +194,7 @@ router.post('/resend',(req,res)=>{
 
     return transporter.sendMail({
         
-        from: "himanshu1912006@akgec.ac.in",
+        from: "sachan.himanshu2001@gmail.com",
         to: email,
         subject: "otp verification",
         html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
@@ -199,15 +212,21 @@ router.post('/login',(req,res)=>{
     if(!email || !password)
     {   
         //at 203 please add email or password
-        return res.status(202).json({error:"please add email or password"})
+        return res.status(203).json({error:"please add email or password"})
     }
     User.findOne({email:email})
     .then(savedUser=>{
         console.log(savedUser)
         if(savedUser==null){
             //at 204 invalid eamil or password
-            return res.status(202).json({error:"invalid eamil or password"})
+            return res.status(203).json({error:"invalid eamil or password"})
         }
+        // //console.log(savedUser.password)
+        // if(savedUser.password!=password)
+        // {
+        //     return res.status(202).json({error:"invalid eamil or password"})
+
+        // }
     
         
         if(savedUser.isVerified==="false")
@@ -235,7 +254,7 @@ router.post('/login',(req,res)=>{
 
             return transporter.sendMail({
                 
-                from: "himanshu1912006@akgec.ac.in",
+                from: "sachan.himanshu2001@gmail.com",
                 to: email,
                 subject: "otp verification",
                 html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
@@ -255,7 +274,8 @@ router.post('/login',(req,res)=>{
 
 
                 //console.log(token)
-                return res.json({token:token})
+                //return res.json({token:token})
+                return res.status(200).json({msg:"logged in successfully",token:token})
             }
             else{
                 return res.status(202).json({error:"wrong password"})

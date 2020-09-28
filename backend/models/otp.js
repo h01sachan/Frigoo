@@ -3,7 +3,7 @@ var mongoose = require('mongoose')
 const otpSchema=new mongoose.Schema({
         token: {
             type: String,
-            require:true
+           require:true
           },
         otp:{
             type:String,
@@ -11,8 +11,8 @@ const otpSchema=new mongoose.Schema({
         },
         email:{
             type:String,
-            require:true
+            //require:true
         }
 })
-otpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 180 })
+otpSchema.index({ createdAt: 1 }, { expireAfterSeconds:180 })
 mongoose.model("OtpUser",otpSchema)

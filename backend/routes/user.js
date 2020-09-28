@@ -25,4 +25,34 @@ router.get("/user/:id",requirelogin,(req,res)=>{
 
 	})
 
+//API for follow
+router.put("/follow",requirelogin ,(req,res)=>{
+	//followId : Id of user to be followed
+	User.findByIdAndUpdate(req.body.followId,{
+		//pushing userId in array who follows 
+		$push:{followers:req.user._id}
+	},
+    {
+    	//updated followers after followed 
+        new:true
+	},
+	(err,result)=>{
+		if(err){
+			return res.status(422).json({error:err})
+		}
+		//now update following of user who follow
+        User.findByIdAndUpdate(req.user._Id,{
+        	//pushing userId in array who followed by user
+            $push:{following:req.body.followId}	
+        },
+        {
+        	//update following array
+        	new:true}).then(result=>{
+        	         res.json(result)
+        }).catch(err=>{
+        	return res.status(422).json({error:err})
+        })
+	})
+})
+
 module.exports = router

@@ -25,9 +25,11 @@ const userschema=new mongoose.Schema({
     isVerified: { 
         type: String, 
         default: "false"
-     }
-    
-
+     },
+    //followers array
+    followers: [{type:ObjectId, ref:"User"}],
+    //following array
+    following: [{type:ObjectId, ref:"User"}]
 })
 
 mongoose.model("User",userschema)

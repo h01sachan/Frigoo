@@ -4,7 +4,7 @@ const mongoose=require('mongoose')
 const connectdb =require("./connectdb/db")
 const passport=require('passport')
 const crypto=require('crypto')
-var bodyParser = require('body-parser');
+var bodyParser = require('body-parser')
 const PORT=5000
 
 //connected to mongoodb
@@ -16,6 +16,8 @@ require('./models/user')
 require('./models/otp')
 //feedSchema model
 require('./models/feed')
+//profileSchema model
+require('./models/profile')
 
 app.use(express.static("uploads"))
 app.use(express.json())
@@ -31,6 +33,8 @@ app.use(require('./routes/feed'))
 //route file for authentication
 app.use(require('./routes/user'))
 
+//route file for authentication
+app.use(require('./routes/profile'))
 
 app.listen(PORT,()=>{
     console.log("server is running",PORT)

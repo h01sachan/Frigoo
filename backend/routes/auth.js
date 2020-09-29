@@ -15,7 +15,7 @@ const crypto=require('crypto')
 const { route } = require('./feed')
 const otpGenerator = require("otp-generator")
 const config=require("../config")
-const { match } = require('assert')
+// const { match } = require('assert')
 var emailRegex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
 
 
@@ -165,9 +165,10 @@ router.post('/otpverify',(req,res)=>{
 
 router.post('/resend',(req,res)=>{
     const{email}=req.body
+    //expiring last token so that only latest otp is valid
     OtpUser.findOne({email:email})
     .then((otpuser)=>{
-        otpuser.token="false"
+        otpuser.token=null
         otpuser.save()
 
     })
@@ -269,6 +270,12 @@ router.post('/login',(req,res)=>{
             console.log(doMatch)
             if(doMatch)
             {
+                User.findOne({email:email})
+                .then((alreadylogged)=>{
+                alreadylogged.token=null;
+                alreadylogged.save()
+
+                })
                 //return res.json({message:"successfully logged in"})
                 const token=jwt.sign({_id:savedUser._id},JWT_SECRET,{expiresIn:'6h'})
 

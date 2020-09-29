@@ -1,12 +1,6 @@
 const mongoose=require('mongoose');
 const {ObjectId}=mongoose.Schema.Types
 const profileSchema=new mongoose.Schema({
-    picUrl:
-    {
-        type:String,
-        required:true,
-        default:"no profile"
-    },
     userName:{
         type:String,
         required:true
@@ -14,6 +8,11 @@ const profileSchema=new mongoose.Schema({
     Bio:{
         type:String,
         required:true  
+    },
+    picUrl:
+    {
+        type:String,
+        default:"no profile"
     },
     setBy:{
         type:ObjectId,

@@ -26,11 +26,11 @@ const fileFilter = (req,file,cb)=>{
     }
 }
 
-router.use(multer({storage:storage ,fileFilter:fileFilter}).single("photo"))
+const imp = multer({storage:storage ,fileFilter:fileFilter}).single("photo")
 
 //Create post API
 //using requirelogin to make this route protected
-router.post('/createfeed',requirelogin,(req,res)=>{
+router.post('/createfeed',[requirelogin,imp],(req,res)=>{
 
     //res.send("hello")
     const {title,body}=req.body
@@ -40,8 +40,8 @@ router.post('/createfeed',requirelogin,(req,res)=>{
         return res.status(422).json({error:"please fill all the required fields"})
     }
     //console.log(photo)
-    req.user.password=undefined
-    req.user.confirmPassword=undefined
+  /*  req.user.password=undefined
+    req.user.confirmPassword=undefined*/
     const feed =new Feed({ 
         title:title,
         body:body,

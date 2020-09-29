@@ -40,12 +40,14 @@ router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
     if(!userName){
         return res.status(422).json({error:"please fill all the required fields"})
     }
-        /*Profile.findOne({ userName:userName }).select("User._id").then((savedUser)=>{
+        Profile.findOne({ userName:userName }).select("User._id").then((savedUser)=>{
         if (savedUser){
             //at 205 user already exists
+            if(savedUser._id!=req.body._)
             return res.status(401)
             .json({error:"user already exist"})
-        }*/
+        }
+    
     //console.log(photo)
     req.user.password=undefined
     req.user.confirmPassword=undefined
@@ -56,12 +58,17 @@ router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
         setBy:req.user
         
     })
+    console.log(profile.userName)
     profile.save().then(Result=>{
         res.json({profile:Result})
     })
     .catch(error=>{
         console.log(error)
     })
+})
+.catch(error=>{
+    console.log(error)
+})
 })
 
 

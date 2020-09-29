@@ -39,9 +39,6 @@ router.post('/createfeed',[requirelogin,imp],(req,res)=>{
     if(!title || !body || !photo){
         return res.status(422).json({error:"please fill all the required fields"})
     }
-    //console.log(photo)
-  /*  req.user.password=undefined
-    req.user.confirmPassword=undefined*/
     const feed =new Feed({ 
         title:title,
         body:body,
@@ -102,7 +99,7 @@ router.put('/unlike/post',requirelogin,(req,res)=>{
     //req user's feedid from client side
     Feed.findOneAndUpdate(req.body.feedId,{
         //pulling user id out off array who unliked it
-        $pull:{likes:req.user._id},
+        $pull:{likes:req.user._id}
     },
     {
         //to get updated user profile after unlike 
@@ -122,8 +119,9 @@ router.put('/comment/on/post',requirelogin,(req,res)=>{
         text:req.body.text, //from client side 
         postedBy:req.user._id //which user has posted a comment
     }
-    Feed.findOneAndUpdate(req.body.feedId,{
-        //pushing a comment in array with user id 
+    console.log(comment)
+    Feed.findOneAndUpdate(req.user.feedId,{
+        //pushing a comment in array with user id
         $push:{comment:comment}
     },
     {

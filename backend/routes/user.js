@@ -41,19 +41,22 @@ router.put("/follow",requirelogin ,(req,res)=>{
 			return res.status(422).json({error:err})
 		}
 		//now update followingArray of user who follows
-        User.findByIdAndUpdate(req.user._Id,{
+        User.findByIdAndUpdate(req.user._id,{
         	//pushing userId in Followingarray who followed by user
             $push:{following:req.body.followId}	
         },
         {
         	//update following array
-        	new:true})
-            .select("-password -confirmPassword")
-            .then(result=>{
+			new:true
+		})
+        .select("-password -confirmPassword")
+        .then(result=>{
+			
         	         res.json(result)
         }).catch(err=>{
         	return res.status(422).json({error:err})
-        })
+		})
+		console.log(result)
 	})
 })
 
@@ -73,7 +76,7 @@ router.put("/Unfollow",requirelogin ,(req,res)=>{
 			return res.status(422).json({error:err})
 		}
 		//now update followingArray of user who Unfollow
-        User.findByIdAndUpdate(req.user._Id,{
+        User.findByIdAndUpdate(req.user._id,{
         	//pulling userId from followingArray who Unfollowed by user
             $pull:{following:req.body.UnfollowId}	
         },
@@ -91,10 +94,10 @@ router.put("/Unfollow",requirelogin ,(req,res)=>{
 //search users in database
 router.post('/search/users',(req,res)=>{
 	//The RegExp object is used for matching text with a pattern.
-	let username=new RegExp("^"+req.body.query)
-	User.find({name:{$regex:username}})
-	//searched user by id and email
-	.select("_id email")
+	//console.log(req.query)
+	const name=req.body.name
+	console.log(name)
+	User.find({name:{$regex:name,$options:'$i'}})
 	.then (user=>{
 		res.json({user})
 	})

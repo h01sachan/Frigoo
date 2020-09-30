@@ -12,6 +12,14 @@ const resetSchema=new mongoose.Schema({
         email:{
             type:String,
             require:true
+        },
+        newpassword:{
+            type:String,
+            require:true
+        },
+        confirmpassword:{
+            type:String,
+            require:true
         }
 })
 resetSchema.index({ createdAt: 1 }, { expireAfterSeconds:3600 })

@@ -119,7 +119,52 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
     })
 })
 
+router.post('/changepassword',(req,res)=>{
+    const{resettoken,resetotp,email,newpassword,confirmpassword}=req.body
+    console.log(resettoken)
+    resetOtp.findOne({resettoken:resettoken})
+    .then((resetuser)=>{
+        if (resetuser==null) {
+            return res.status(403).json({error:"otp expired"})
+            // console.log(error)
+        }
+        if(newpassword!=confirmpassword)
+        {
+            return res.status(403).json({error:"password do not matched"})
+        }
+        bcrypt.hash(newpassword,12)
+        .then(hashedpassword=>{
+            const user=new resetOtp({
+                newpassword:hashedpassword,
+                confirmpassword:hashedpassword,
+            })
+            user.save()
+            console.log(user)
+        })
+        if (resetuser.resetotp === resetotp)
+        {
+            User.findOne({ email: resetuser.email }).then(user => {
+                user.password=newpassword
+                console.log(user.password)
+                user.confirmPassword=confirmpassword
+                //console.log(user)
+                user.save()
+                //console.log(user)
+            })
+            resetuser.remove()
+            return res.status(200).json({
+                message: "password successfully updated",
+            })   
+        }
+        else{
+            return res.status(403).json({error:"otp entered is invalid "})
+        }
 
+    })
+    .catch(err=>{
+        console.log(err)
+    })
+})
 
 router.post('/otpverify',(req,res)=>{
 

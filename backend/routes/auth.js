@@ -3,6 +3,7 @@ const router=express.Router()
 const mongoose = require('mongoose')
 const User=mongoose.model("User")
 const OtpUser=mongoose.model("OtpUser")
+const resetOtp=mongoose.model("resetOtp")
 const bcrypt=require('bcryptjs')
 const jwt=require('jsonwebtoken')
 const {JWT_SECRET}=require('../keys')
@@ -162,7 +163,50 @@ router.post('/otpverify',(req,res)=>{
         console.log(err)
     })
 })
+router.post('/resetOtp',(req,res)=>{
+    const{email}=req.body
+    //agar phele se present hua token toh usse expire kar diya
+    resetOtp.findOne({email:email})
+    .then((ifpresent)=>{
+        ifpresent.resettoken=null
+        resetOtp.save()
+    })
 
+    //else generating reset otp
+    let resetotp = otpGenerator.generate(6, {
+        alphabets: false,
+        specialChars: false,
+        upperCase: false,
+    })
+    const resettoken = jwt.sign(
+    {
+        email: email
+    },
+    "resetotptoken",
+        { expiresIn: 3600 } //in three minute
+    )
+    const otpdata = new resetOtp({
+        resettoken: resettoken,
+        resetotp: resetotp,
+        email: email
+    })
+    console.log(resetotp)
+    otpdata.save()
+    res.status(201).json({ message: "otp is generated" , token:resettoken})
+
+    return transporter.sendMail({
+        
+        from: "sachan.himanshu2001@gmail.com",
+        to: email,
+        subject: "otp verification",
+        html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${resetotp}</h1>`
+
+      });
+
+
+
+    
+})
 router.post('/resend',(req,res)=>{
     const{email}=req.body
     //expiring last token so that only latest otp is valid
@@ -176,7 +220,7 @@ router.post('/resend',(req,res)=>{
         alphabets: false,
         specialChars: false,
         upperCase: false,
-      });
+      })
     const token = jwt.sign(
     {
         email: email,

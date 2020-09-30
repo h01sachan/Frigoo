@@ -18,6 +18,8 @@ require('./models/otp')
 require('./models/feed')
 //profileSchema model
 require('./models/profile')
+//reset otp
+require('./models/resetotp')
 
 app.use(express.static("uploads"))
 app.use(express.json())

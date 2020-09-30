@@ -140,6 +140,17 @@ router.put('/comment/on/post',requirelogin,(req,res)=>{
         }
     })
 })
+router.get('/following-user-post',requirelogin,(req,res)=>{
+    Feed.find({postedBy:{$in:req.user.following}})
+    .populate("postedBy","_id name")
+    .then(viewfeeds=>{
+        res.json({viewfeeds})
+
+    })
+    .catch(err=>{
+        console.log(err)
+    })
+})
 
 
 

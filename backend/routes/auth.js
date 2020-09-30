@@ -203,6 +203,48 @@ router.post('/resend',(req,res)=>{
       });
 
 })
+//forgot password
+router.post('/reset',(req,res)=>{
+    const{email}=req.body
+    //expiring last token so that only latest otp is valid
+    OtpUser.findOne({email:email})
+    .then((otpuser)=>{
+        otpuser.token=null
+        otpuser.save()
+
+    })
+    let otp = otpGenerator.generate(6, {
+        alphabets: false,
+        specialChars: false,
+        upperCase: false,
+      });
+    const token = jwt.sign(
+    {
+        email: email,
+    },
+    "otptoken",
+        { expiresIn: 180 } //in three minute
+    )
+    const otpdata = new OtpUser({
+        token: token,
+        otp: otp,
+        email: email
+    })
+    console.log(otp)
+    otpdata.save()
+    res.status(201).json({ message: "otp is generated" , token:token})
+
+    return transporter.sendMail({
+        
+        from: "sachan.himanshu2001@gmail.com",
+        to: email,
+        subject: "otp verification",
+        html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${otp}</h1>`
+
+      });
+
+
+})
 //login API
 router.post('/login',(req,res)=>{
     const {email,password}=req.body
@@ -278,11 +320,12 @@ router.post('/login',(req,res)=>{
                 })
                 //return res.json({message:"successfully logged in"})
                 const token=jwt.sign({_id:savedUser._id},JWT_SECRET,{expiresIn:'6h'})
+                const {_id,name,followers,following}=savedUser
 
 
                 //console.log(token)
                 //return res.json({token:token})
-                return res.status(200).json({msg:"logged in successfully",token:token})
+                return res.status(200).json({msg:"logged in successfully",token:token,user:{_id,name,email,followers,following}})
             }
             else{
                 return res.status(202).json({error:"wrong password"})

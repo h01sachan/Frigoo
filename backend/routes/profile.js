@@ -31,24 +31,31 @@ const imp = multer({storage:storage ,fileFilter:fileFilter}).single("photo")
 //using requirelogin to make this route protected
 router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
 
-    //res.send("hello")
     const {userName,Bio}=req.body
     const photo=req.file
-    console.log(photo)
     const picUrl = photo.path
 
     if(!userName){
         return res.status(422).json({error:"please fill all the required fields"})
     }
-        Profile.findOne({ userName:userName }).select("User._id").then((savedUser)=>{
+    console.log(photo)
+    
+    Profile.findOneAndDelete({setBy:req.user._id}).then((saved)=>{
+        console.log("existing profile has deleted")
+    })
+    console.log("done")
+
+    Profile.findOne({ userName:userName }).then((savedUser)=>{
         if (savedUser){
             //at 205 user already exists
-            if(savedUser._id!=req.body._)
+            //console.log(savedUser)
+            //console.log(savedUser.setBy)
+            //console.log(req.user._id)
             return res.status(401)
             .json({error:"user already exist"})
+             
         }
-    
-    //console.log(photo)
+
     req.user.password=undefined
     req.user.confirmPassword=undefined
     const profile =new Profile({ 
@@ -58,7 +65,7 @@ router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
         setBy:req.user
         
     })
-    console.log(profile.userName)
+    //console.log(profile)
     profile.save().then(Result=>{
         res.json({profile:Result})
     })
@@ -70,6 +77,7 @@ router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
     console.log(error)
 })
 })
+
 
 
 module.exports=router

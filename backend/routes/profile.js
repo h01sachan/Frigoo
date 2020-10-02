@@ -8,6 +8,7 @@ const User=mongoose.model("User")
 const multer = require("multer")
 
 
+
 const storage = multer.diskStorage({
     destination: (req,file, cb)=>{  //choose the destination for storing images
         cb(null,"./profileimages/");
@@ -19,26 +20,32 @@ const storage = multer.diskStorage({
 
 //function to filter the image type
 const fileFilter = (req,file,cb)=>{
-    if(file.mimetype === "image/jpeg" || file.mimetype === "image/png"){
+    if(file.mimetype === "image/jpeg" || file.mimetype === "image/png" || file.mimetype === "image/jpg"){
         cb(null,true);
     } else{
         cb(null,false)
     }
 }
 
-const imp = multer({storage:storage ,fileFilter:fileFilter}).single("photo")
+const imp = multer({storage:storage ,fileFilter:fileFilter}).single("picUrl")
 //Create uploadProfile API
 //using requirelogin to make this route protected
 router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
 
     const {userName,Bio}=req.body
-    const photo=req.file
-    const picUrl = photo.path
+    console.log(userName)
+    console.log(Bio)
+    //const photo=req.file
+    //console.log(photo)
+    
+    const picUrl = req.file.path
+    console.log(picUrl)
+
 
     if(!userName){
         return res.status(422).json({error:"please fill all the required fields"})
     }
-    console.log(photo)
+    //console.log(photo)
     
     Profile.findOneAndDelete({setBy:req.user._id}).then((saved)=>{
         console.log("existing profile has deleted")

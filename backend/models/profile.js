@@ -6,8 +6,8 @@ const profileSchema=new mongoose.Schema({
         required:true
     },
     Bio:{
-        type:String,
-        required:true  
+        type:String
+  
     },
     picUrl:
     {

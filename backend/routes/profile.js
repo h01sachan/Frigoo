@@ -5,6 +5,8 @@ const mongoose = require('mongoose')
 const requirelogin = require('../Controllers/jwt-login')
 const Profile=mongoose.model("Profile")
 const User=mongoose.model("User")
+const Feed=mongoose.model("Feed")
+require('./feed')
 const multer = require("multer")
 
 
@@ -30,46 +32,72 @@ const imp = multer({storage:storage ,fileFilter:fileFilter}).single("photo")
 //Create uploadProfile API
 //using requirelogin to make this route protected
 router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
-
-    //res.send("hello")
+ 
     const {userName,Bio}=req.body
+    console.log(userName)
+    console.log(Bio)
     const photo=req.file
     console.log(photo)
-    const picUrl = photo.path
-
-    if(!userName){
+    
+    const picUrl = (photo.path)
+    console.log(picUrl)
+ 
+    //new hoga toh create
+    //already user hai aur same user hai to update karna hai
+    //if username already exist toh not update 
+ 
+    if(!userName || !photo){
         return res.status(422).json({error:"please fill all the required fields"})
     }
-        Profile.findOne({ userName:userName }).select("User._id").then((savedUser)=>{
-        if (savedUser){
-            //at 205 user already exists
-            if(savedUser._id!=req.body._)
-            return res.status(401)
-            .json({error:"user already exist"})
+ 
+    //if username already exist
+    Profile.findOne({userName:userName}).then((saved)=>{
+        if(saved)
+        {
+            console.log(saved.setBy)
+            console.log(req.user._id)
+            if((saved.setBy)!=(req.body._id))
+            {
+                return res.status(401).json({error:"user already exist"})
+            }
         }
-    
-    //console.log(photo)
-    req.user.password=undefined
-    req.user.confirmPassword=undefined
-    const profile =new Profile({ 
-        userName:userName,
-        Bio:Bio,
-        picUrl: picUrl,
-        setBy:req.user
-        
-    })
-    console.log(profile.userName)
+    Profile.findOneAndDelete({setBy:req.user._id}).then((saved)=>{
+        console.log("existing profile has deleted")
+        req.user.password=undefined
+        req.user.confirmpassword=undefined
+        const profile =new Profile({ 
+            userName:userName,
+            Bio:Bio,
+            picUrl: picUrl,
+            setBy:req.user
+            
+        })
+        //console.log(profile)
     profile.save().then(Result=>{
         res.json({profile:Result})
     })
     .catch(error=>{
         console.log(error)
     })
+        console.log("successfully updated")
+    })
+    
 })
 .catch(error=>{
     console.log(error)
 })
 })
 
+
+router.get("/myprofile",requirelogin, (req,res)=>{
+    Profile.find({setBy:req.user._id})
+    .populate("setBy" , "_id name email")
+    .then(myprofile=>{
+        res.json({myprofile})
+    })
+    .catch(err=>{
+        console.log(err)
+    })
+})
 
 module.exports=router

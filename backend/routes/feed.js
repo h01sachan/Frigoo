@@ -39,6 +39,8 @@ router.post('/createfeed',[requirelogin,imp],(req,res)=>{
     if(!title || !body || !photo){
         return res.status(422).json({error:"please fill all the required fields"})
     }
+    req.user.password=undefined
+    req.user.confirmpassword=undefined
     const feed =new Feed({ 
         title:title,
         body:body,

@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 
 const requirelogin = require('../Controllers/jwt-login')
 const Feed=mongoose.model("Feed")
+const Profile=mongoose.model("Profile")
 
 const multer = require("multer")
 
@@ -39,22 +40,52 @@ router.post('/createfeed',[requirelogin,imp],(req,res)=>{
     if(!title || !body || !photo){
         return res.status(422).json({error:"please fill all the required fields"})
     }
+    Profile.findOne({setBy : req.user.id})
+    .select("picUrl userName")
+    .then((saved)=>{
+        //console.log(saved)
+        const profile = saved
+    
     req.user.password=undefined
     req.user.confirmpassword=undefined
     const feed =new Feed({ 
         title:title,
         body:body,
         photourl: photourl,
-        postedBy:req.user
+        postedBy:req.user,
+        profile : profile
         
     })
+  
     feed.save().then(Result=>{
         res.json({feed:Result})
+        })
+    .catch(error=>{
+        console.log(error)
+    })  
     })
+
     .catch(error=>{
         console.log(error)
     })
 })
+
+
+
+router.delete("/delfeed",requirelogin, (req,res)=>{
+    Feed.findById(req.body.feedId)
+    .then(delfeed=>{
+        if(delfeed.postedBy._id.toString() === req.user._id.toString()){
+            delfeed.remove()
+        console.log("deleted successfully")
+        res.json({delfeed})
+         }
+    })
+    .catch(err=>{
+        console.log(err)
+    })
+})
+
 router.get("/myfeed",requirelogin, (req,res)=>{
     Feed.find({postedBy:req.user._id})
     .populate("postedBy" , "_id name email")
@@ -70,6 +101,10 @@ router.get("/allfeed",requirelogin, (req,res)=>{
     Feed.find()
     .populate("postedBy" , "_id name email")
     .then(feeds=>{
+       Profile.findOne({setBy : feeds.postedBy})
+        .then(profile=>{
+            res.json({profile})
+        })
         res.json({feeds})
     })
     .catch(err=>{

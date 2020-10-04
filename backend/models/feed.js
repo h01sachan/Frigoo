@@ -24,6 +24,10 @@ const feedSchema=new mongoose.Schema({
     comment:[{
         text:String,
         postedBy:{type:ObjectId,ref:"User"}
-    }]
+    }],
+    profile :{
+        type:ObjectId,
+        ref:"Profile"
+    }
 })
 mongoose.model("Feed",feedSchema)

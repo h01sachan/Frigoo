@@ -29,7 +29,7 @@ const fileFilter = (req,file,cb)=>{
     }
 }
 
-const imp = multer({storage:storage ,fileFilter:fileFilter}).single("picUrl")
+const imp = multer({storage:storage ,fileFilter:fileFilter}).single("photo")
 //Create uploadProfile API
 //using requirelogin to make this route protected
 router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
@@ -40,7 +40,7 @@ router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
     const photo=req.file
     console.log(photo)
     
-    const picUrl = (photo.path)
+    const picUrl = (photo.path).split('\\')[1]
     console.log(picUrl)
  
     //new hoga toh create
@@ -80,6 +80,14 @@ router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
     .catch(error=>{
         console.log(error)
     })
+                User.findOne({email:req.user.email})
+                .then((name)=>{
+                    name.username=true;
+                    name.save();
+                })
+                .catch(err=>{
+                    console.log(err)
+                })
         console.log("successfully updated")
     })
     

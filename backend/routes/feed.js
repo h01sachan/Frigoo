@@ -5,7 +5,7 @@ const mongoose = require('mongoose')
 const requirelogin = require('../Controllers/jwt-login')
 const Feed=mongoose.model("Feed")
 const Profile=mongoose.model("Profile")
-
+//var path = require('path');
 const multer = require("multer")
 
 //function to store the images
@@ -36,7 +36,10 @@ router.post('/createfeed',[requirelogin,imp],(req,res)=>{
     //res.send("hello")
     const {title,body}=req.body
     const photo=req.file
-    const photourl = photo.path
+    const photourl = (photo.path).split('\\')[1]
+    console.log(title);
+    console.log(body);
+    console.log(photourl)
     if(!title || !body || !photo){
         return res.status(422).json({error:"please fill all the required fields"})
     }
@@ -47,7 +50,7 @@ router.post('/createfeed',[requirelogin,imp],(req,res)=>{
         const profile = saved
     
     req.user.password=undefined
-    req.user.confirmpassword=undefined
+    req.user.confirmPassword=undefined
     const feed =new Feed({ 
         title:title,
         body:body,
@@ -88,7 +91,7 @@ router.delete("/delfeed",requirelogin, (req,res)=>{
 
 router.get("/myfeed",requirelogin, (req,res)=>{
     Feed.find({postedBy:req.user._id})
-    .populate("postedBy" , "_id name email")
+    .populate("postedBy" , "_id name email followers following")
     .then(myfeed=>{
         res.json({myfeed})
     })
@@ -107,6 +110,7 @@ router.get("/allfeed",requirelogin, (req,res)=>{
     //     .then(profile=>{
     //         res.json({profile})
     //     })
+    feeds.reverse()
         res.json({feeds})
     })
     .catch(err=>{
@@ -122,6 +126,7 @@ router.put('/like/post',requirelogin,(req,res)=>{
         $push:{likes:req.user._id}, 
     },
     {
+        //You should set the new option to true to return the document after update was applied.
         //to get updated user profile after like 
         new:true 
     })
@@ -153,7 +158,7 @@ router.put('/unlike/post',requirelogin,(req,res)=>{
         }
     })
 })
-router.put('/comment/on/post',requirelogin,(req,res)=>{
+router.put('/comment',requirelogin,(req,res)=>{
     const comment={
         text:req.body.text, //from client side 
         postedBy:req.user._id //which user has posted a comment
@@ -167,9 +172,11 @@ router.put('/comment/on/post',requirelogin,(req,res)=>{
         //to get new and updated instance 
         new:true 
     })
+    
     //populate() function in mongoose is used for populating the data inside the reference.
     //In our case feedSchema is having postedBy field which will reference to the _id field which is basically the ObjectId of the mongodb document.
     .populate("comment.postedby","_id username")
+     //The exec() method executes a search for a match in a specified string. Returns a result array, or null 
     .exec((err,result)=>{
         if(err){
             return res.status(422).json({error:err})       
@@ -179,10 +186,17 @@ router.put('/comment/on/post',requirelogin,(req,res)=>{
         }
     })
 })
-router.get('/following-user-post',requirelogin,(req,res)=>{
+router.get('/following/user/feed',requirelogin,(req,res)=>{
+    req.user.following.push(req.user._id);
+    console.log(req.user.following)
     Feed.find({postedBy:{$in:req.user.following}})
-    .populate("postedBy","_id name")
+    .populate("postedBy","_id")
+    .populate("profile","userName picUrl")
+    .populate("comments.postedBy","_id name")
     .then(viewfeeds=>{
+        
+        req.user.following.pull(req.user._id)
+        console.log(req.user.following)
         res.json({viewfeeds})
 
     })

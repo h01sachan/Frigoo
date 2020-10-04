@@ -105,4 +105,20 @@ router.post('/search/users',(req,res)=>{
 		console.log(err)
 	})
 })
+router.put("/bookmark",requirelogin ,(req,res)=>{
+
+	//followId : Id of user to be followed
+	User.findByIdAndUpdate(req.user._id,{
+		//pushing userId in followersArray, who follows 
+		$push:{bookmark:req.body.bookmarkfeedId}
+	},
+    {
+    	//updated followers array 
+        new:true
+	})
+	.catch(err=>{
+		res.json(err)
+	})
+})
+
 module.exports = router

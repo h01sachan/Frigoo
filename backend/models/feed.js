@@ -28,6 +28,9 @@ const feedSchema=new mongoose.Schema({
     profile :{
         type:ObjectId,
         ref:"Profile"
-    }
+    },
+    //bookmark 
+    bookmark:[{type:ObjectId,ref:"User"}],
+
 })
 mongoose.model("Feed",feedSchema)

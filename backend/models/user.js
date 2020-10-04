@@ -25,10 +25,16 @@ const userschema=new mongoose.Schema({
         type: String, 
         default: "false"
      },
+    username:{
+        type:String,
+        default:"false"
+    },
     //followers array
     followers: [{type:ObjectId, ref:"User"}],
     //following array
-    following: [{type:ObjectId, ref:"User"}]
+    following: [{type:ObjectId, ref:"User"}],
+    //bookmark 
+    bookmark:[{type:ObjectId,ref:"User"}]
 })
 
 mongoose.model("User",userschema)

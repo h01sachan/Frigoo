@@ -119,9 +119,15 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
     })
 })
 
-router.post('/changepassword',(req,res)=>{
+router.post('/changepassword',[ body("newpassword").isLength({min:5}) ],(req,res)=>{
     const{resettoken,resetotp,email,newpassword,confirmpassword}=req.body
     var newpwd
+    const error =validationResult(req)
+    if(!error.isEmpty()) {
+        
+        //at 403 error is password must contain 5 characters
+        return res.status(403).json({error: "password must contain atleast 5 characters"});
+    }
     console.log(resettoken)
     resetOtp.findOne({resettoken:resettoken})
     .then((resetuser)=>{
@@ -131,7 +137,7 @@ router.post('/changepassword',(req,res)=>{
         }
         if(newpassword!=confirmpassword)
         {
-            return res.status(403).json({error:"password do not matched"})
+            return res.status(405).json({error:"password do not matched"})
         }
         bcrypt.hash(newpassword,12)
         .then(hashedpassword=>{
@@ -161,7 +167,7 @@ router.post('/changepassword',(req,res)=>{
             })   
         }
         else{
-            return res.status(403).json({error:"otp entered is invalid "})
+            return res.status(406).json({error:"otp entered is invalid "})
         }
 
     })
@@ -214,11 +220,17 @@ router.post('/otpverify',(req,res)=>{
 })
 router.post('/forgotpassword',(req,res)=>{
     const{email}=req.body
+    User.findOne({email:email})
+    .then((savedUser)=>{
+        if(savedUser==null)
+        {
+            return res.status(203).json({error:"invalid eamil"})
+        }
     //agar phele se present hua token toh usse expire kar diya
     resetOtp.findOne({email:email})
     .then((ifpresent)=>{
         ifpresent.resettoken=null
-        resetOtp.save()
+        ifpresent.save()
     })
 
     //else generating reset otp
@@ -232,7 +244,7 @@ router.post('/forgotpassword',(req,res)=>{
         email: email
     },
     "resetotptoken",
-        { expiresIn: 3600 } //in three minute
+        { expiresIn: 36000 } //in three minute
     )
     const otpdata = new resetOtp({
         resettoken: resettoken,
@@ -250,11 +262,12 @@ router.post('/forgotpassword',(req,res)=>{
         subject: "otp verification",
         html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${resetotp}</h1>`
 
-      });
-
-
-
+    })
+    .catch(err=>{
+        console.log(err)
+    })
     
+})
 })
 router.post('/resend',(req,res)=>{
     const{email}=req.body
@@ -296,6 +309,43 @@ router.post('/resend',(req,res)=>{
       });
 
 })
+router.post('/resendresetotp',(req,res)=>{
+    const{email}=req.body
+    //expiring last token so that only latest otp is valid
+    resetOtp.findOne({email:email})
+    .then((otpuser)=>{
+        otpuser.token=null
+        otpuser.save()
+
+    })
+    let resetotp = otpGenerator.generate(6, {
+        alphabets: false,
+        specialChars: false,
+        upperCase: false,
+    })
+    const resettoken = jwt.sign(
+    {
+        email: email
+    },
+    "resetotptoken",
+        { expiresIn: 36000 } //in three minute
+    )
+    const otpdata = new resetOtp({
+        resettoken: resettoken,
+        resetotp: resetotp,
+        email: email
+    })
+    console.log(resetotp)
+    otpdata.save()
+    res.status(201).json({ message: "otp is generated" , token:resettoken})
+    return transporter.sendMail({
+        from: "sachan.himanshu2001@gmail.com",
+        to: email,
+        subject: "otp verification",
+        html: `<h1>welcome to frigoo to enjoy our feature please verify your email using this otp : ${resetotp}</h1>`
+
+      });
+    })
 //forgot password
 // router.post('/reset',(req,res)=>{
 //     const{email}=req.body

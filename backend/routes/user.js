@@ -97,9 +97,9 @@ router.post('/search/users',(req,res)=>{
 	//console.log(req.query)
 	const name=req.body.name
 	console.log(name)
-	User.find({name:{$regex:name,$options:'$i'}})
-	.then (user=>{
-		res.json({user})
+	User.find({name:{$regex:name,$options:"ix"}},{name:1}).sort({"name": -1})
+	.then (finded=>{
+		res.json({finded})
 	})
 	.catch(err=>{
 		console.log(err)

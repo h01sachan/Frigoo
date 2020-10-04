@@ -22,5 +22,5 @@ const resetSchema=new mongoose.Schema({
             require:true
         }
 })
-resetSchema.index({ createdAt: 1 }, { expireAfterSeconds:3600 })
+resetSchema.index({ createdAt: 1 }, { expireAfterSeconds:36000 })
 mongoose.model("resetOtp",resetSchema)

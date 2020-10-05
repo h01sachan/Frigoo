@@ -100,17 +100,11 @@ router.get("/myfeed",requirelogin, (req,res)=>{
     })
 })
 
-router.get("/allfeed",requirelogin, (req,res)=>{
-    Feed.find()
+router.get("/bookmarkedfeeds",requirelogin, (req,res)=>{
+    Feed.find({_id:{$in:req.user.bookmark}})
     .populate("postedBy" , "_id name email")
     .populate("profile","userName picUrl")
     .then(feeds=>{
-
-    //    Profile.findOne({setBy : feeds.postedBy})
-    //     .then(profile=>{
-    //         res.json({profile})
-    //     })
-    feeds.reverse()
         res.json({feeds})
     })
     .catch(err=>{

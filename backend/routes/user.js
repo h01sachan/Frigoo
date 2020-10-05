@@ -117,13 +117,29 @@ router.put("/bookmark",requirelogin ,(req,res)=>{
     {
     	//updated bookmark array 
         new:true
-	})
-    .then(result=>{
-       res.json(result)
-     })
-	.catch(err=>{
-		res.json(err)
-	})
+	},
+    (err,result)=>{
+        if(err){
+            return res.status(422).json({error:err})
+        }
+        //now update followingArray of user who follows
+        Feed.findByIdAndUpdate(req.body.bookmarkfeedId,{
+            //pushing userId in Followingarray who followed by user
+            $push:{bookmark:req.user._id} 
+        },
+        {
+            //update following array
+            new:true
+        })
+        .select("-password -confirmPassword")
+        .then(result=>{
+            
+                     res.json(result)
+        }).catch(err=>{
+            return res.status(422).json({error:err})
+        })
+        console.log(result)
+    })
 })
 //unbookmark API
 router.put("/unbookmark",requirelogin ,(req,res)=>{
@@ -144,6 +160,7 @@ router.put("/unbookmark",requirelogin ,(req,res)=>{
         res.json(err)
     })
 })
+
 
 
 

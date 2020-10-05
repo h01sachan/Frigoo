@@ -105,20 +105,46 @@ router.post('/search/users',(req,res)=>{
 		console.log(err)
 	})
 })
+
+//bookmark API
 router.put("/bookmark",requirelogin ,(req,res)=>{
 
-	//followId : Id of user to be followed
+	//find user _id to update his bookmark array
 	User.findByIdAndUpdate(req.user._id,{
-		//pushing userId in followersArray, who follows 
+		//pushing bookmarkfeedId in BookmarkArray 
 		$push:{bookmark:req.body.bookmarkfeedId}
 	},
     {
-    	//updated followers array 
+    	//updated bookmark array 
         new:true
 	})
+    .then(result=>{
+       res.json(result)
+     })
 	.catch(err=>{
 		res.json(err)
 	})
 })
+//unbookmark API
+router.put("/unbookmark",requirelogin ,(req,res)=>{
+
+    //find user _id to update his bookmark array
+    User.findByIdAndUpdate(req.user._id,{
+        //pulling bookmarkfeedId from BookmarkArray
+        $pull:{bookmark:req.body.bookmarkfeedId}
+    },
+    {
+        //updated bookmark array 
+        new:true
+    })
+    .then(result=>{
+       res.json(result)
+     })
+    .catch(err=>{
+        res.json(err)
+    })
+})
+
+
 
 module.exports = router

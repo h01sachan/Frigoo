@@ -5,6 +5,7 @@ const mongoose = require('mongoose')
 const requirelogin = require('../Controllers/jwt-login')
 const Feed=mongoose.model("Feed")
 const Profile=mongoose.model("Profile")
+const User=mongoose.model("User")
 //var path = require('path');
 const multer = require("multer")
 
@@ -91,9 +92,23 @@ router.delete("/delfeed",requirelogin, (req,res)=>{
 
 router.get("/myfeed",requirelogin, (req,res)=>{
     Feed.find({postedBy:req.user._id})
-    .populate("postedBy" , "_id name email followers following")
+    .select("-profile")
     .then(myfeed=>{
-        res.json({myfeed})
+        Profile.findOne({setBy:req.user._id})
+        .then((profile)=>{
+            User.findOne({_id:req.user._id})
+            .select("followers following")
+            .then(follower=>{
+                res.json({profile,follower,myfeed,});
+            })
+            .catch(err=>{
+                console.log(err)
+            })
+        })
+        .catch(err=>{
+            console.log(err)
+        })
+        
     })
     .catch(err=>{
         console.log(err)
@@ -105,6 +120,7 @@ router.get("/bookmarkedfeeds",requirelogin, (req,res)=>{
     .populate("postedBy" , "_id name email")
     .populate("profile","userName picUrl")
     .then(feeds=>{
+        feeds.reverse()
         res.json({feeds})
     })
     .catch(err=>{
@@ -115,7 +131,7 @@ router.get("/bookmarkedfeeds",requirelogin, (req,res)=>{
 
 router.put('/like/post',requirelogin,(req,res)=>{
      //req user's feedid from client side
-    Feed.findOneAndUpdate(req.body.feedId,{
+    Feed.findByIdAndUpdate(req.body.feedId,{
     //pushing user id in array who liked it
         $push:{likes:req.user._id}, 
     },
@@ -135,7 +151,7 @@ router.put('/like/post',requirelogin,(req,res)=>{
 })
 router.put('/unlike/post',requirelogin,(req,res)=>{
     //req user's feedid from client side
-    Feed.findOneAndUpdate(req.body.feedId,{
+    Feed.findByIdAndUpdate(req.body.feedId,{
         //pulling user id out off array who unliked it
         $pull:{likes:req.user._id}
     },

@@ -3,26 +3,39 @@ const router=express.Router()
 const mongoose = require('mongoose')
 const User=mongoose.model("User")
 const Feed=mongoose.model("Feed")
+const Profile=mongoose.model("Profile")
 const requirelogin = require('../Controllers/jwt-login')
 
 //profile API
-router.get("/user/:id",requirelogin,(req,res)=>{
+router.get("/user/:id" ,requirelogin,(req,res)=>{
 	User.findOne({_id:req.params.id})
-	.select("-password -confirmPassword")
+    .select("followers following")
 	.then(user=>{
-		Feed.find({postedBy:req.params.id})
-       .populate("postedBy" , "_id name email")
-       .exec((err,feeds)=>{
-       	if(err){
-       		return res.status(404).json({error:err})
-       	}
-       	res.json({user,feeds})
-       	})
-       })
-	    .catch(err=>{
-	    	return res.status(404).json({error:"user not found"})
-	    })
+		
+        Feed.find({postedBy:req.params.id})
+        .select("title body photourl likes ")
+        .then(feeds=>{
 
+            Profile.findOne({setBy : req.user.id})
+            .select("picUrl userName")
+            .then(profile=>{
+
+       	         res.json({user,feeds,profile})
+
+       	    })
+            .catch(err=>{
+				 return res.json(err)
+				})
+       
+			})
+			.catch(err=>{
+				return res.json(err)
+			})
+		  
+		})
+		.catch(err=>{
+			return res.status(404).json({error:"user not found"})
+		})
 	})
 
 //API for follow
@@ -105,6 +118,17 @@ router.post('/search/users',(req,res)=>{
 		console.log(err)
 	})
 })
+// router.post('/graball',(req,res)=>{
+// 	const id=req.body._id;
+// 	User.findById(id)
+// 	.select("-password -confirmPassword")
+// 	.then(result=>{
+            
+// 		res.json(result)
+// 	}).catch(err=>{
+// 		return res.status(422).json({error:err})
+// 	})
+// })
 
 //bookmark API
 router.put("/bookmark",requirelogin ,(req,res)=>{

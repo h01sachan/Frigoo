@@ -53,15 +53,15 @@ router.post('/uploadProfile',[requirelogin,imp],(req,res)=>{
  
     //if username already exist
     Profile.findOne({userName:userName}).then((saved)=>{
-        if(saved)
-        {
-            console.log(saved.setBy)
-            console.log(req.user._id)
-            if((saved.setBy)!=(req.body._id))
-            {
-                return res.status(401).json({error:"user already exist"})
-            }
-        }
+        // if(saved)
+        // {
+        //     console.log(saved.setBy)
+        //     //console.log(req.user._id)
+        //     if((saved.setBy)!=(req.body.id))
+        //     {
+        //         return res.status(422).json({error:"user already exist"})
+        //     }
+        // }
     Profile.findOneAndDelete({setBy:req.user._id}).then((saved)=>{
         console.log("existing profile has deleted")
         req.user.password=undefined

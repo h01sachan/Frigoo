@@ -111,6 +111,9 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
 
               });
         })
+        .catch(err=>{
+            res.json(err)
+        })
 
     })
     .catch(err=>{
@@ -199,14 +202,15 @@ router.post('/otpverify',(req,res)=>{
           user.isVerified="true"
           console.log(user)
           user.save()
+          otpuser.remove()
+          const token=jwt.sign({_id:user._id},JWT_SECRET,{expiresIn:'6h'})
+          const {_id,name,followers,following,username}=user
+
+            return res.status(201).json({message:"otp entered is correct, user added",token:token,user:{_id,name,email,followers,following,username}})
         })
 
         //after verification remove user's otp database
-        otpuser.remove()
 
-        return res.status(200).json({
-            message: "otp entered is correct, user added",
-            })
         } 
         else 
         {
@@ -395,6 +399,7 @@ router.post('/login',(req,res)=>{
             })
             console.log(otp)
             otpdata.save()
+            console.log(token)
             res.status(201).json({ message: "otp is generated" , token:token})
 
             return transporter.sendMail({

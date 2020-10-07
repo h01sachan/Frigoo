@@ -12,12 +12,14 @@ const {body , validationResult} = require("express-validator")
 const nodemailer = require("nodemailer")
 const nodemailersendgrid = require("nodemailer-sendgrid-transport")
 const passport=require('passport')
+//Crypto is a module in Node. js which deals with an algorithm that performs data encryption and decryption.
 const crypto=require('crypto')
 const { route } = require('./feed')
 const otpGenerator = require("otp-generator")
 const config=require("../config")
 // const { match } = require('assert')
-var emailRegex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+var emailRegex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/
+var passwordregex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/
 
 
 
@@ -31,14 +33,8 @@ const transporter = nodemailer.createTransport(nodemailersendgrid({
     }
 }))
 //signup API
-router.post('/signup',[ body("password").isLength({min:5}) ] , 
-(req,res)=>{
-    const error =validationResult(req)
-    if(!error.isEmpty()) {
-        
-        //at 403 error is password must contain 5 characters
-        return res.status(403).json({error: "password must contain atleast 5 characters"});
-    }
+
+router.post('/signup', (req,res)=>{
 
     const{name,email,password,confirmPassword}=req.body
     var valid = emailRegex.test(email)
@@ -46,7 +42,11 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
     {
         return res.status(403).json({error: "please enter valid email"});
     }
-
+    valid = passwordregex.test(password)
+    if(!valid)
+    {
+        return res.status(403).json({error: "password must contain atleast one special character and one number and length should be between 6 to 16"});
+    }
     //all details should be mentioned
     if(!email || !password || !name || !confirmPassword ) {
         
@@ -71,6 +71,7 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
         //password must be hashed
         bcrypt.hash(password,12)
         .then(hashedpassword=>{
+            //new user create instance of user model
             const user=new User({
                 email,
                 password:hashedpassword,
@@ -122,15 +123,22 @@ router.post('/signup',[ body("password").isLength({min:5}) ] ,
     })
 })
 
-router.post('/changepassword',[ body("newpassword").isLength({min:5}) ],(req,res)=>{
+router.post('/changepassword',(req,res)=>{
     const{resettoken,resetotp,email,newpassword,confirmpassword}=req.body
     var newpwd
-    const error =validationResult(req)
-    if(!error.isEmpty()) {
-        
-        //at 403 error is password must contain 5 characters
-        return res.status(403).json({error: "password must contain atleast 5 characters"});
+
+    var valid = emailRegex.test(email)
+    if(!valid)
+    {
+        return res.status(403).json({error: "please enter valid email"});
     }
+
+    valid = passwordregex.test(newpassword)
+    if(!valid)
+    {
+        return res.status(403).json({error: "password must contain atleast one special character and one number and length should be between 6 to 16"});
+    }
+    
     console.log(resettoken)
     resetOtp.findOne({resettoken:resettoken})
     .then((resetuser)=>{
@@ -151,6 +159,9 @@ router.post('/changepassword',[ body("newpassword").isLength({min:5}) ],(req,res
             })
             user.save()
             console.log(user)
+        })
+        .catch(err=>{
+            res.json(err)
         })
         
         if (resetuser.resetotp === resetotp)
@@ -204,9 +215,9 @@ router.post('/otpverify',(req,res)=>{
           user.save()
           otpuser.remove()
           const token=jwt.sign({_id:user._id},JWT_SECRET,{expiresIn:'6h'})
-          const {_id,name,followers,following,username}=user
+          const {_id,name,followers,following,username,password,email,bookmark}=user
 
-            return res.status(201).json({message:"otp entered is correct, user added",token:token,user:{_id,name,email,followers,following,username}})
+            return res.status(201).json({message:"otp entered is correct, user added",token:token,user:{_id,name,email,followers,following,username,bookamrk}})
         })
 
         //after verification remove user's otp database
@@ -419,20 +430,14 @@ router.post('/login',(req,res)=>{
             console.log(doMatch)
             if(doMatch)
             {
-                User.findOne({email:email})
-                .then((alreadylogged)=>{
-                alreadylogged.token=null;
-                alreadylogged.save()
-
-                })
                 //return res.json({message:"successfully logged in"})
                 const token=jwt.sign({_id:savedUser._id},JWT_SECRET,{expiresIn:'6h'})
-                const {_id,name,followers,following,username}=savedUser
+                const {_id,name,followers,following,username,password,email,bookmark}=savedUser
 
 
                 //console.log(token)
                 //return res.json({token:token})
-                return res.status(200).json({msg:"logged in successfully",token:token,user:{_id,name,email,followers,following,username}})
+                return res.status(200).json({msg:"logged in successfully",token:token,user:{_id,name,email,followers,following,username,bookmark}})
             }
             else{
                 return res.status(202).json({error:"wrong password"})

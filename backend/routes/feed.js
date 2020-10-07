@@ -21,13 +21,13 @@ const storage = multer.diskStorage({
 
 //function to filter the image type
 const fileFilter = (req,file,cb)=>{
-    if(file.mimetype === "image/jpeg" || file.mimetype === "image/png"){
+    if(file.mimetype === "image/jpeg" || file.mimetype === "image/png" || file.mimetype==="image/jpg"){
         cb(null,true);
     } else{
         cb(null,false)
     }
 }
-
+//to handle multiple files of data
 const imp = multer({storage:storage ,fileFilter:fileFilter}).single("photo")
 
 //Create post API
@@ -37,13 +37,14 @@ router.post('/createfeed',[requirelogin,imp],(req,res)=>{
     //res.send("hello")
     const {title,body}=req.body
     const photo=req.file
+    
+    if(!title || !body || !photo){
+        return res.status(422).json({error:"please fill all the required fields"})
+    }
     const photourl = (photo.path).split('\\')[1]
     console.log(title);
     console.log(body);
     console.log(photourl)
-    if(!title || !body || !photo){
-        return res.status(422).json({error:"please fill all the required fields"})
-    }
     Profile.findOne({setBy : req.user.id})
     .select("picUrl userName")
     .then((saved)=>{
@@ -94,6 +95,7 @@ router.get("/myfeed",requirelogin, (req,res)=>{
     Feed.find({postedBy:req.user._id})
     .select("-profile")
     .then(myfeed=>{
+        myfeed.reverse()
         Profile.findOne({setBy:req.user._id})
         .then((profile)=>{
             User.findOne({_id:req.user._id})
@@ -133,7 +135,7 @@ router.put('/like/post',requirelogin,(req,res)=>{
      //req user's feedid from client side
     Feed.findByIdAndUpdate(req.body.feedId,{
     //pushing user id in array who liked it
-        $push:{likes:req.user._id}, 
+        $addToSet:{likes:req.user._id}, 
     },
     {
         //You should set the new option to true to return the document after update was applied.
@@ -204,7 +206,7 @@ router.get('/following/user/feed',requirelogin,(req,res)=>{
     .populate("profile","userName picUrl")
     .populate("comments.postedBy","_id name")
     .then(viewfeeds=>{
-        
+        viewfeeds.reverse()
         req.user.following.pull(req.user._id)
         console.log(req.user.following)
         res.json({viewfeeds})
@@ -214,6 +216,7 @@ router.get('/following/user/feed',requirelogin,(req,res)=>{
         console.log(err)
     })
 })
+
 
 
 

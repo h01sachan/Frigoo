@@ -10,17 +10,17 @@ const requirelogin = require('../Controllers/jwt-login')
 router.get("/user/:id" ,requirelogin,(req,res)=>{
 	User.findOne({_id:req.params.id})
     .select("followers following")
-	.then(user=>{
+	.then(follower=>{
 		
         Feed.find({postedBy:req.params.id})
-        .select("title body photourl likes ")
-        .then(feeds=>{
+        .select("title body photourl likes comment")
+        .then(myfeed=>{
 
-            Profile.findOne({setBy : req.user.id})
-            .select("picUrl userName")
+            Profile.findOne({setBy : req.params.id})
+            .select("picUrl userName Bio")
             .then(profile=>{
 
-       	         res.json({user,feeds,profile})
+       	         res.json({profile,follower,myfeed,})
 
        	    })
             .catch(err=>{
@@ -42,8 +42,9 @@ router.get("/user/:id" ,requirelogin,(req,res)=>{
 router.put("/follow",requirelogin ,(req,res)=>{
 	//followId : Id of user to be followed
 	User.findByIdAndUpdate(req.body.followId,{
-		//pushing userId in followersArray, who follows 
-		$push:{followers:req.user._id}
+		
+		//The $addToSet operator adds a value to an array unless the value is already present,
+		$addToSet:{followers:req.user._id}
 	},
     {
     	//updated followers array 
@@ -56,7 +57,7 @@ router.put("/follow",requirelogin ,(req,res)=>{
 		//now update followingArray of user who follows
         User.findByIdAndUpdate(req.user._id,{
         	//pushing userId in Followingarray who followed by user
-            $push:{following:req.body.followId}	
+            $addToSet:{following:req.body.followId}	
         },
         {
         	//update following array
@@ -76,7 +77,7 @@ router.put("/follow",requirelogin ,(req,res)=>{
 //API for Unfollow
 router.put("/Unfollow",requirelogin ,(req,res)=>{
 	//UnfollowId : Id of user to be Unfollowed
-	User.findByIdAndUpdate(req.body.UnfollowId,{
+	User.findByIdAndUpdate(req.body.unfollowId,{
 		//pulling userId from followersarray who Unfollows 
 		$pull:{followers:req.user._id}
 	},
@@ -91,7 +92,7 @@ router.put("/Unfollow",requirelogin ,(req,res)=>{
 		//now update followingArray of user who Unfollow
         User.findByIdAndUpdate(req.user._id,{
         	//pulling userId from followingArray who Unfollowed by user
-            $pull:{following:req.body.UnfollowId}	
+            $pull:{following:req.body.unfollowId}	
         },
         {
         	//update following array
@@ -136,7 +137,7 @@ router.put("/bookmark",requirelogin ,(req,res)=>{
 	//find user _id to update his bookmark array
 	User.findByIdAndUpdate(req.user._id,{
 		//pushing bookmarkfeedId in BookmarkArray 
-		$push:{bookmark:req.body.bookmarkfeedId}
+		$addToSet:{bookmark:req.body.bookmarkfeedId}
 	},
     {
     	//updated bookmark array 
@@ -149,7 +150,7 @@ router.put("/bookmark",requirelogin ,(req,res)=>{
         //now update followingArray of user who follows
         Feed.findByIdAndUpdate(req.body.bookmarkfeedId,{
             //pushing userId in Followingarray who followed by user
-            $push:{bookmark:req.user._id} 
+            $addToSet:{bookmark:req.user._id} 
         },
         {
             //update following array
@@ -166,6 +167,24 @@ router.put("/bookmark",requirelogin ,(req,res)=>{
     })
 })
 //unbookmark API
+// router.put("/bookmark",requirelogin ,(req,res)=>{
+
+//     //find user _id to update his bookmark array
+//     User.findByIdAndUpdate(req.user._id,{
+//         //pulling bookmarkfeedId from BookmarkArray
+//         $addToSet:{bookmark:req.body.bookmarkfeedId}
+//     },
+//     {
+//         //updated bookmark array 
+//         new:true
+//     })
+//     .then(result=>{
+//        res.json(result)
+//      })
+//     .catch(err=>{
+//         res.json(err)
+//     })
+// })
 router.put("/unbookmark",requirelogin ,(req,res)=>{
 
     //find user _id to update his bookmark array

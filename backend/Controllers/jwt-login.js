@@ -23,7 +23,7 @@ module.exports=(req,res,next)=>{
             return res.status(401).json({error:"you must be logged in"})
         }
 
-        const {_id,name,email,followers,following,username}=payload
+        const {_id,name,email,followers,following,username,password,bookmark}=payload
         
         User.findById(_id).then(userdata=>{
             req.user=userdata

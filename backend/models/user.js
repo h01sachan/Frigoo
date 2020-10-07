@@ -34,7 +34,7 @@ const userschema=new mongoose.Schema({
     //following array
     following: [{type:ObjectId, ref:"User"}],
     //bookmark 
-    bookmark:[{type:ObjectId,ref:"User"}]
+    bookmark:[{type:ObjectId,ref:"Feed"}]
 })
 
 mongoose.model("User",userschema)

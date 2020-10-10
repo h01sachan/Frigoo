@@ -19,9 +19,9 @@ const storage = multer.diskStorage({
     }
 })
 
-//function to filter the image type
+//function to filter the image and vedio type
 const fileFilter = (req,file,cb)=>{
-    if(file.mimetype === "image/jpeg" || file.mimetype === "image/png" || file.mimetype==="image/jpg"){
+    if(file.mimetype === "image/jpeg" || file.mimetype === "image/png" || file.mimetype==="image/jpg" || file.mimetype==="image/gif" || file.mimetype==="video/mp4"){
         cb(null,true);
     } else{
         cb(null,false)
@@ -34,49 +34,49 @@ const imp = multer({storage:storage ,fileFilter:fileFilter}).single("photo")
 //using requirelogin to make this route protected
 router.post('/createfeed',[requirelogin,imp],(req,res)=>{
 
-    //res.send("hello")
     const {title,body}=req.body
     const photo=req.file
+    
+    console.log(body); 
     console.log(photo)
+
     if(!title || !body || !photo){
         return res.status(422).json({error:"please fill all the required fields"})
     }
+
     const photourl = (photo.path).split('\\')[1]
-    console.log(title);
-    console.log(body);
     console.log(photourl)
+    
     Profile.findOne({setBy : req.user.id})
     .select("picUrl userName")
     .then((saved)=>{
-        //console.log(saved)
         const profile = saved
     
-    req.user.password=undefined
-    req.user.confirmPassword=undefined
-    const feed =new Feed({ 
-        title:title,
-        body:body,
-        photourl: photourl,
-        postedBy:req.user,
-        profile : profile
-        
-    })
-  
-    feed.save().then(Result=>{
-        res.json({feed:Result})
+        req.user.password=undefined
+        req.user.confirmPassword=undefined
+        const feed =new Feed({ 
+            title:title,
+            body:body,
+            photourl: photourl,
+            postedBy:req.user,
+            profile : profile
+                
         })
-    .catch(error=>{
-        console.log(error)
-    })  
+            
+        feed.save()
+        .then(Result=>{
+                res.json({feed:Result})
+        })
+        .catch(error=>{
+            console.log(error)
+        })  
     })
-
     .catch(error=>{
         console.log(error)
     })
 })
 
-
-
+//API delete feed
 router.post("/delfeed",requirelogin, (req,res)=>{
     Feed.findById(req.body.feedId)
     .then(delfeed=>{
@@ -91,16 +91,20 @@ router.post("/delfeed",requirelogin, (req,res)=>{
     })
 })
 
+//API feeds of user 
 router.get("/myfeed",requirelogin, (req,res)=>{
     Feed.find({postedBy:req.user._id})
     .select("-profile")
     .then(myfeed=>{
+
         myfeed.reverse()
         Profile.findOne({setBy:req.user._id})
         .then((profile)=>{
+
             User.findOne({_id:req.user._id})
             .select("followers following")
             .then(follower=>{
+
                 res.json({profile,follower,myfeed,});
             })
             .catch(err=>{
@@ -110,13 +114,12 @@ router.get("/myfeed",requirelogin, (req,res)=>{
         .catch(err=>{
             console.log(err)
         })
-        
     })
     .catch(err=>{
         console.log(err)
     })
 })
-
+//Bookmarked feeds
 router.get("/bookmarkedfeeds",requirelogin, (req,res)=>{
     
     Feed.find({_id:{$in:req.user.bookmark}})
@@ -132,7 +135,7 @@ router.get("/bookmarkedfeeds",requirelogin, (req,res)=>{
     })
 })
 
-
+//like API
 router.put('/like/post',requirelogin,(req,res)=>{
      //req user's feedid from client side
     Feed.findByIdAndUpdate(req.body.feedId,{
@@ -153,6 +156,7 @@ router.put('/like/post',requirelogin,(req,res)=>{
         }
     })
 })
+//unlike API
 router.put('/unlike/post',requirelogin,(req,res)=>{
     //req user's feedid from client side
     Feed.findByIdAndUpdate(req.body.feedId,{
@@ -172,6 +176,7 @@ router.put('/unlike/post',requirelogin,(req,res)=>{
         }
     })
 })
+//comment API
 router.put('/comment',requirelogin,(req,res)=>{
     const comment={
         text:req.body.text, //from client side 
@@ -200,6 +205,7 @@ router.put('/comment',requirelogin,(req,res)=>{
         }
     })
 })
+//home page feed
 router.get('/following/user/feed',requirelogin,(req,res)=>{
     req.user.following.push(req.user._id);
     console.log(req.user.following)
@@ -218,8 +224,6 @@ router.get('/following/user/feed',requirelogin,(req,res)=>{
         console.log(err)
     })
 })
-
-
 
 
 module.exports=router

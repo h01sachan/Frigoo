@@ -27,29 +27,17 @@ app.use(express.static("uploads"))
 app.use(express.json())
 app.use(bodyParser.json({limit: '10mb', extended: true}))
 app.use(bodyParser.urlencoded({limit: '10mb', extended: true}))
-//app.use(bodyParser.text(options.text))
-//app.use(bodyParser.json({ type: 'application/*+json' }))
- 
-// parse some custom thing into a Buffer
-app.use(bodyParser.raw({ type: 'application/vnd.custom-type' }))
- 
-// parse an HTML body into a string
-app.use(bodyParser.text({ type: 'text/html' }))
-
-app.use("profileimages",express.static("profileimages"))
-//app.use(express.static(path.join(__dirname,'uploads')));
-//app.use(express.static("uploads"))
 
 //route file for authentication
 app.use(require('./routes/auth'))
 
-//route file for authentication
+//route file for feeds
 app.use(require('./routes/feed'))
 
-//route file for authentication
+//route file for user
 app.use(require('./routes/user'))
 
-//route file for authentication
+//route file for profile
 app.use(require('./routes/profile'))
 
 app.listen(PORT,()=>{

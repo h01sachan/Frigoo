@@ -40,27 +40,27 @@ router.get("/user/:id", requirelogin, (req, res) => {
 
 //API for follow
 router.put("/follow", requirelogin, (req, res) => {
-	//followId : Id of user to be followed
+	//pushing user._id in FollowersArray of followId user
 	User.findByIdAndUpdate(req.body.followId, {
 
 		//The $addToSet operator adds a value to an array unless the value is already present,
 		$addToSet: { followers: req.user._id }
 	},
 		{
-			//updated followers array 
+			//return updated followers array followId user
 			new: true
 		},
 		(err, result) => {
 			if (err) {
 				return res.status(422).json({ error: err })
 			}
-			//now update followingArray of user who follows
+			//pushing followId in FolloweingsArray of user._id
 			User.findByIdAndUpdate(req.user._id, {
-				//pushing userId in Followingarray who followed by user
+				
 				$addToSet: { following: req.body.followId }
 			},
 				{
-					//update following array
+					//return updated following array of user
 					new: true
 				})
 				.select("-password -confirmPassword")
@@ -76,26 +76,26 @@ router.put("/follow", requirelogin, (req, res) => {
 
 //API for Unfollow
 router.put("/Unfollow", requirelogin, (req, res) => {
-	//UnfollowId : Id of user to be Unfollowed
+	//pulling user._id from followersarray of unfollowId user
 	User.findByIdAndUpdate(req.body.unfollowId, {
-		//pulling userId from followersarray who Unfollows 
+		 
 		$pull: { followers: req.user._id }
 	},
 		{
-			//updated followersarray
+			//return updated followersarray unfollowId user
 			new: true
 		},
 		(err, result) => {
 			if (err) {
 				return res.status(422).json({ error: err })
 			}
-			//now update followingArray of user who Unfollow
+			//pulling unfollowId user from followingArray of user
 			User.findByIdAndUpdate(req.user._id, {
-				//pulling userId from followingArray who Unfollowed by user
+				
 				$pull: { following: req.body.unfollowId }
 			},
 				{
-					//update following array
+					//return updated following array
 					new: true
 				})
 				.select("-password -confirmPassword")
@@ -106,10 +106,10 @@ router.put("/Unfollow", requirelogin, (req, res) => {
 				})
 		})
 })
+
 //search users in database
 router.post('/search/users', (req, res) => {
 	//The RegExp object is used for matching text with a pattern.
-	//console.log(req.query)
 	const name = req.body.name
 	console.log(name)
 	User.find({ name: { $regex: name, $options: "ix" } }, { name: 1, userName: 1, profilepic: 1, username: 1 }).sort({ "name": -1 })
@@ -120,153 +120,85 @@ router.post('/search/users', (req, res) => {
 			console.log(err)
 		})
 })
-// router.post('/graball',(req,res)=>{
-// 	const id=req.body._id;
-// 	User.findById(id)
-// 	.select("-password -confirmPassword")
-// 	.then(result=>{
-
-// 		res.json(result)
-// 	}).catch(err=>{
-// 		return res.status(422).json({error:err})
-// 	})
-// })
 
 //bookmark API
 router.put("/bookmark", requirelogin, (req, res) => {
-
-	//find user _id to update his bookmark array
+    //pushing bookmarkfeedId in BookmarkArray of user
 	User.findByIdAndUpdate(req.user._id, {
-		//pushing bookmarkfeedId in BookmarkArray 
 		$addToSet: { bookmark: req.body.bookmarkfeedId }
-	},
+	    },
 		{
-			//updated bookmark array 
+			//return updated bookmark array
 			new: true
 		},
 		(err, result) => {
 			if (err) {
 				return res.status(422).json({ error: err })
-			}
-			//now update followingArray of user who follows
+			} 
+			//pushing user _id in BookmarkArray of feed
 			Feed.findByIdAndUpdate(req.body.bookmarkfeedId, {
-				//pushing userId in Followingarray who followed by user
-				$addToSet: { bookmark: req.user._id }
-			},
+				
+                $addToSet: { bookmark: req.user._id }
+			    },
+                //return updated bookmark array
 				{
-					//update following array
-					new: true
-				})
-				.select("-password -confirmPassword")
-				.then(result => {
-
-					res.json(result)
-				}).catch(err => {
-					return res.status(422).json({ error: err })
-				})
-			console.log(result)
-		})
+					new: true          
+			})
+			.select("-password -confirmPassword")
+			.then(result => {
+                     
+                      res.json(result)
+			})
+            .catch(err => {
+				return res.status(422).json({ error: err })
+			})
+        }
+    )
 })
-//unbookmark
+
+//unbookmark API
 router.put("/unbookmark", requirelogin, (req, res) => {
 
-	//find user _id to update his bookmark array
-	User.findByIdAndUpdate(req.user._id, {
-		//pushing bookmarkfeedId in BookmarkArray 
-		$pull: { bookmark: req.body.bookmarkfeedId }
-	},
-		{
-			//updated bookmark array 
-			new: true
-		},
-		(err, result) => {
-			if (err) {
-				return res.status(422).json({ error: err })
-			}
-			//now update followingArray of user who follows
-			Feed.findByIdAndUpdate(req.body.bookmarkfeedId, {
-				//pushing userId in Followingarray who followed by user
-				$pull: { bookmark: req.user._id }
-			},
-				{
-					//update following array
-					new: true
-				})
-				.select("-password -confirmPassword")
-				.then(result => {
-
-					res.json(result)
-				}).catch(err => {
-					return res.status(422).json({ error: err })
-				})
-			console.log(result)
-		})
+    //pulling bookmarkfeedId from BookmarkArray of user
+    User.findByIdAndUpdate(req.user._id, {
+        $pull: { bookmark: req.body.bookmarkfeedId }
+        },
+        {
+            //return updated bookmark array of user
+            new: true
+        },
+        (err, result) => {
+            if (err) {
+                return res.status(422).json({ error: err })
+            } 
+            //pulling user _id from BookmarkArray of feed
+            Feed.findByIdAndUpdate(req.body.bookmarkfeedId, {
+                
+                $pull: { bookmark: req.user._id }
+                },
+                //return updated bookmark array of feed
+                {
+                    new: true          
+            })
+            .select("-password -confirmPassword")
+            .then(result => {
+                     
+                      res.json(result)
+            })
+            .catch(err => {
+                return res.status(422).json({ error: err })
+            })
+               console.log(result)
+        }
+    )
 })
-router.post('/clear',requirelogin,( req,res)=>{
-	User.findOne({_id:req.user._id})
-	.then(saveduser=>{
-		saveduser.bookmark
-	})
-})
-// router.get("/followinglist",requirelogin,(req,res)=>{
-// 	//The RegExp object is used for matching text with a pattern.
-// 	//console.log(req.query)
-// 	const id=req.body.id_of_user
-// 	User.findOne({_id:id})
-// 	.then(finded=>{
-// 		if(!finded)
-// 		{
-// 			return res.json({msg:"user not found"})
-// 		}
-// 		User.findOne({ _id: { $in: finded.following } })
-// 			.select("name username userName profilepic")
-// 			.then(followinglist => {
-// 				res.json({ followinglist })
-// 			})
-// 			.catch(err => {
-// 				console.log(err)
-// 			})
-// 	})
-// 	.catch(err=>{
-// 		console.log(err)
-// 	})
 
 
-
-// })
-// router.get("/followerslist",requirelogin,(req,res)=>{
-// 	//The RegExp object is used for matching text with a pattern.
-// 	//console.log(req.query)
-
-// 	User.findOne({_id:{$in:req.user.followers}})
-// 	.select("name username userName profilepic")
-// 	.then(followerlist=>{
-// 		res.json({followerlist})
-// 	})
-// 	.catch(err=>{
-// 		console.log(err)
-// 	})
-// })
-
-
-
-
-// const name=req.body.name
-// console.log(name)
-// User.find({name:{$regex:name,$options:"ix"}},{name:1,userName:1,profilepic:1,username:1}).sort({"name": -1})
-// .then (finded=>{
-// 	res.json({finded})
-// })
-// .catch(err=>{
-// 	console.log(err)
-// })
-
-
-
-router.get("/followers/:id" , (req,res)=>{
+//route to get follower list
+router.get("/followers/:id" ,requirelogin, (req,res)=>{
     User.findById(req.params.id)
     .then(follower=>{
-         User.findById({$in : {follower.followers}})
+         User.find({_id:{$in : follower.followers}})
          .select("name username userName profilepic")
          .then(followers=>{
             res.json({followers})
@@ -277,10 +209,11 @@ router.get("/followers/:id" , (req,res)=>{
     })
 })
 
-router.get("/following/:id" , (req,res)=>{
+//route to get following list
+router.get("/following/:id" ,requirelogin ,(req,res)=>{
     User.findById(req.params.id)
     .then(following=>{
-         User.findById({$in : {following.following}})
+         User.find({_id: {$in : following.following}})
          .select("name username userName profilepic")
 
          .then(followings=>{

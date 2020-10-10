@@ -37,6 +37,7 @@ const transporter = nodemailer.createTransport(nodemailersendgrid({
 router.post('/signup', (req,res)=>{
 
     const{name,email,password,confirmPassword}=req.body
+    console.log(req.body)
     var valid = emailRegex.test(email)
     if(!valid)
     {
@@ -45,7 +46,7 @@ router.post('/signup', (req,res)=>{
     valid = passwordregex.test(password)
     if(!valid)
     {
-        return res.status(403).json({error: "password must contain atleast one special character and one number and length should be between 6 to 16"});
+        return res.status(403).json({error: "password must contain atleast one special character one number and length should be between 6 to 16 and spaces are not allowed"});
     }
     //all details should be mentioned
     if(!email || !password || !name || !confirmPassword ) {

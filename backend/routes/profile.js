@@ -8,8 +8,8 @@ const User = mongoose.model("User")
 const Feed = mongoose.model("Feed")
 require('./feed')
 const multer = require("multer")
-var userregex="^(?=.{6,20}$)(?![_.])(?.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$"
 
+var userregex= /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{6,10}$/
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {  //choose the destination for storing images
@@ -49,6 +49,11 @@ router.post('/uploadProfile', [requirelogin, imp], (req, res) => {
     
     if (!userName || !photo) {
         return res.status(422).json({ error: "please fill all the required fields" })
+    }
+    var valid = userregex.test(userName)
+    if(!valid)
+    {
+        return res.status(403).json({error: "special characters and spaces are not acceptable"});
     }
 
     //if username already exist

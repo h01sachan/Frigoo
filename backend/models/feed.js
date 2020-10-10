@@ -12,7 +12,7 @@ const feedSchema=new mongoose.Schema({
     },
     photourl:{
         type:String,
-        required:true  
+        default:"no profile"
     },
     //making a likes array which will have user id of users who liked
     likes:[{type:ObjectId,ref:"User"}],
@@ -28,8 +28,9 @@ const feedSchema=new mongoose.Schema({
     profile :{
         type:ObjectId,
         ref:"Profile"
-    }
-    
-
+    },
+    bookmark:[{
+        type:ObjectId,ref:"User"
+    }]
 })
 mongoose.model("Feed",feedSchema)

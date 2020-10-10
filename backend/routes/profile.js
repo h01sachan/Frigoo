@@ -8,7 +8,7 @@ const User = mongoose.model("User")
 const Feed = mongoose.model("Feed")
 require('./feed')
 const multer = require("multer")
-
+var userregex="^(?=.{6,20}$)(?![_.])(?.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$"
 
 
 const storage = multer.diskStorage({
@@ -46,7 +46,7 @@ router.post('/uploadProfile', [requirelogin, imp], (req, res) => {
     //new hoga toh create
     //already user hai aur same user hai to update karna hai
     //if username already exist toh not update 
-
+    
     if (!userName || !photo) {
         return res.status(422).json({ error: "please fill all the required fields" })
     }
@@ -62,7 +62,16 @@ router.post('/uploadProfile', [requirelogin, imp], (req, res) => {
             saved.Bio = Bio;
             saved.picUrl = picUrl;
             saved.save();
-
+            User.findById(req.user._id)
+                .then(newname => {
+                    newname.userName = userName
+                    newname.profilepic=picUrl
+                    newname.userName=true
+                    newname.save();
+                })
+                .catch(err => {
+                    console.log(err)
+                })
             return res.json({ message: "successfully updtaed" })
 
         }
@@ -72,35 +81,47 @@ router.post('/uploadProfile', [requirelogin, imp], (req, res) => {
                 ifpresent.Bio = Bio;
                 ifpresent.picUrl = picUrl;
                 ifpresent.save();
+                    User.findById(req.user._id)
+                    .then(newname => {
+                        newname.userName = userName
+                        newname.profilepic=picUrl
+                        newname.username=true
+                        newname.save();
+                    })
+                    .catch(err => {
+                        console.log(err)
+                    })
                 return res.json({ message: "successfully updtaed" })
             }
             const profile = new Profile({
                 userName: userName,
                 Bio: Bio,
                 picUrl: picUrl,
-                setBy:req.user._id
+                setBy: req.user._id
             })
             profile.save()
-            User.findOne({email:req.user.email})
-            .then((name)=>{
-                name.username=true;
-                name.save();
-            })
-            .catch(err=>{
-                console.log(err)
-            })
+            User.findOne({ email: req.user.email })
+                .then((name) => {
+                    name.username = true;
+                    name.userName=userName;
+                    name.profilepic=picUrl
+                    name.save();
+                })
+                .catch(err => {
+                    console.log(err)
+                })
             return res.json({ message: "successfully created profile" })
         })
+            .catch(error => {
+                console.log(error)
+            })
+
+
+    })
         .catch(error => {
             console.log(error)
         })
 
-
-    })
-    .catch(error => {
-        console.log(error)
-    })
-        
 
 })
 

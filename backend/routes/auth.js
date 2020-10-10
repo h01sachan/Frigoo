@@ -217,7 +217,7 @@ router.post('/otpverify',(req,res)=>{
           const token=jwt.sign({_id:user._id},JWT_SECRET,{expiresIn:'6h'})
           const {_id,name,followers,following,username,password,email,bookmark}=user
 
-            return res.status(201).json({message:"otp entered is correct, user added",token:token,user:{_id,name,email,followers,following,username,bookamrk}})
+            return res.status(201).json({message:"otp entered is correct, user added",token:token,user:{_id,name,email,followers,following,username,bookmark}})
         })
 
         //after verification remove user's otp database
@@ -289,9 +289,7 @@ router.post('/resend',(req,res)=>{
     //expiring last token so that only latest otp is valid
     OtpUser.findOne({email:email})
     .then((otpuser)=>{
-        otpuser.token=null
-        otpuser.save()
-
+        otpuser.remove();
     })
     let otp = otpGenerator.generate(6, {
         alphabets: false,

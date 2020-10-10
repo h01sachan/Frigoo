@@ -37,7 +37,7 @@ router.post('/createfeed',[requirelogin,imp],(req,res)=>{
     //res.send("hello")
     const {title,body}=req.body
     const photo=req.file
-    
+    console.log(photo)
     if(!title || !body || !photo){
         return res.status(422).json({error:"please fill all the required fields"})
     }
@@ -77,7 +77,7 @@ router.post('/createfeed',[requirelogin,imp],(req,res)=>{
 
 
 
-router.delete("/delfeed",requirelogin, (req,res)=>{
+router.post("/delfeed",requirelogin, (req,res)=>{
     Feed.findById(req.body.feedId)
     .then(delfeed=>{
         if(delfeed.postedBy._id.toString() === req.user._id.toString()){
@@ -118,9 +118,11 @@ router.get("/myfeed",requirelogin, (req,res)=>{
 })
 
 router.get("/bookmarkedfeeds",requirelogin, (req,res)=>{
+    
     Feed.find({_id:{$in:req.user.bookmark}})
-    .populate("postedBy" , "_id name email")
+    .populate("postedBy","_id")
     .populate("profile","userName picUrl")
+    .populate("comments.postedBy","_id name")
     .then(feeds=>{
         feeds.reverse()
         res.json({feeds})
@@ -176,7 +178,7 @@ router.put('/comment',requirelogin,(req,res)=>{
         postedBy:req.user._id //which user has posted a comment
     }
     console.log(comment)
-    Feed.findOneAndUpdate(req.user.feedId,{
+    Feed.findOneAndUpdate(req.body.feedId,{
         //pushing a comment in array with user id
         $push:{comment:comment}
     },
@@ -202,7 +204,7 @@ router.get('/following/user/feed',requirelogin,(req,res)=>{
     req.user.following.push(req.user._id);
     console.log(req.user.following)
     Feed.find({postedBy:{$in:req.user.following}})
-    .populate("postedBy","_id")
+    .populate("postedBy","_id bookmark")
     .populate("profile","userName picUrl")
     .populate("comments.postedBy","_id name")
     .then(viewfeeds=>{

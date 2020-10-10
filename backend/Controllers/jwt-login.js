@@ -20,7 +20,7 @@ module.exports=(req,res,next)=>{
     
     jwt.verify(token,JWT_SECRET,(err,payload)=>{
         if(err){
-            return res.status(401).json({error:"you must be logged in"})
+            return res.status(401).json(err)
         }
 
         const {_id,name,email,followers,following,username,password,bookmark}=payload

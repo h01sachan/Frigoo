@@ -29,6 +29,14 @@ const userschema=new mongoose.Schema({
         type:String,
         default:"false"
     },
+    userName:{
+        type:String,
+        default:"instagrammer"
+    },
+    profilepic:{
+        type:String,
+        default:"no pic"
+    },
     //followers array
     followers: [{type:ObjectId, ref:"User"}],
     //following array

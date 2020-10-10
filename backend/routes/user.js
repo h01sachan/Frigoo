@@ -205,6 +205,34 @@ router.put("/unbookmark",requirelogin ,(req,res)=>{
 })
 
 
+router.get("/followers/:id" , (req,res)=>{
+    User.findById(req.params.id)
+    .then(follower=>{
+         User.findById({$in : {follower.followers}})
+         .select("name username userName profilepic")
+         .then(followers=>{
+            res.json({followers})
+         })
+    })
+    .catch(err=>{
+        return res.json(err)
+    })
+})
 
+router.get("/following/:id" , (req,res)=>{
+    User.findById(req.params.id)
+    .then(following=>{
+         User.findById({$in : {following.following}})
+         .select("name username userName profilepic")
+
+         .then(followings=>{
+            res.json({followings})
+         })
+    })
+    .catch(err=>{
+        return res.json(err)
+    })
+})
 
 module.exports = router
+
